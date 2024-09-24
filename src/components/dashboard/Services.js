@@ -1,22 +1,6 @@
 import React from 'react';
 import { Container, Typography, Grid } from '@mui/material';
-import { makeStyles } from '@mui/styles';
 import ServiceCard from './ServiceCard'; // Import the reusable component
-
-const useStyles = makeStyles(theme => ({
-  section: {
-    padding: '60px 0',
-    backgroundColor: '#f0f8ff',
-    textAlign: 'center',
-  },
-  title: {
-    marginBottom: '40px',
-    color: '#0a77b7',
-    fontSize: '2rem',
-    fontWeight: 600,
-    fontFamily: 'Outfit, sans-serif',
-  },
-}));
 
 const servicesData = [
   {
@@ -47,12 +31,25 @@ const servicesData = [
 ];
 
 const Services = () => {
-  const classes = useStyles();
+  const styles = {
+    section: {
+      padding: '60px 0',
+      backgroundColor: '#f0f8ff',
+      textAlign: 'center',
+    },
+    title: {
+      marginBottom: '40px',
+      color: '#0a77b7',
+      fontSize: '2rem',
+      fontWeight: 600,
+      fontFamily: 'Outfit, sans-serif',
+    },
+  };
 
   return (
-    <div className={classes.section} id="services">
+    <div style={styles.section} id="services">
       <Container maxWidth="lg">
-        <Typography variant="h4" className={classes.title}>
+        <Typography variant="h4" style={styles.title}>
           Services & Packages
         </Typography>
         <Grid container spacing={4} justifyContent="center">

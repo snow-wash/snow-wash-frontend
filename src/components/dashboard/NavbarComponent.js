@@ -2,7 +2,7 @@ import React from 'react';
 import { AppBar, Toolbar, Typography, Button, Container } from '@mui/material';
 import { Link as ScrollLink } from 'react-scroll';
 
-const Navbar = () => {
+const NavbarComponent = () => {
   const linkStyle = {
     color: '#000', // Set text color to black
     textDecoration: 'none',
@@ -88,4 +88,4 @@ const Navbar = () => {
   );
 };
 
-export default Navbar;
+export default NavbarComponent;

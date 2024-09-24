@@ -7,7 +7,6 @@ import Routes from './Routes';
 function App() {
   return (
     <ThemeProvider theme={theme}>
-      <CssBaseline />
       <Routes /> {/* Use the Routes component */}
     </ThemeProvider>
   );

@@ -10,17 +10,24 @@ import {
   Link,
   Paper,
 } from '@mui/material';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate hook
+import apiService from '../services/apiService'; // Import API service
+import SnackbarComponent from '../components/SnackbarComponent'; // Import the reusable Snackbar component
 
-// Configuration variable
-const savePasswordConfig = false; // Set this to false if you don't want to save the password
+const savePasswordConfig = false;
 
 const Login = () => {
-  // State to manage form inputs
-  const [email, setEmail] = useState(''); // Default email text is now empty
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [remember, setRemember] = useState(false);
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: '',
+  });
 
-  // Load email and optionally password from localStorage if "Remember Password" was previously selected
+  const navigate = useNavigate(); // Initialize the useNavigate hook
+
   useEffect(() => {
     const savedEmail = localStorage.getItem('rememberedEmail');
     if (savedEmail) {
@@ -35,39 +42,44 @@ const Login = () => {
     }
   }, []);
 
-  // Handle changes in input fields
-  const handleEmailChange = event => {
-    setEmail(event.target.value);
-  };
+  const handleEmailChange = event => setEmail(event.target.value);
+  const handlePasswordChange = event => setPassword(event.target.value);
+  const handleRememberChange = event => setRemember(event.target.checked);
 
-  const handlePasswordChange = event => {
-    setPassword(event.target.value);
-  };
-
-  // Handle "Remember Password" checkbox toggle
-  const handleRememberChange = event => {
-    setRemember(event.target.checked);
-  };
-
-  // Handle form submission
-  const handleSubmit = event => {
+  const handleSubmit = async event => {
     event.preventDefault();
-    if (remember) {
-      // Save email to localStorage
-      localStorage.setItem('rememberedEmail', email);
-      if (savePasswordConfig) {
-        // Save password only if the configuration allows it
-        localStorage.setItem('rememberedPassword', password);
+    try {
+      const response = await apiService.post('/auth/login', {
+        identifier: email,
+        password,
+      });
+
+      // Handle success message
+      setSnackbar({
+        open: true,
+        message: 'Berhasil Login',
+        severity: 'success',
+      });
+
+      if (remember) {
+        localStorage.setItem('rememberedEmail', email);
+        if (savePasswordConfig) {
+          localStorage.setItem('rememberedPassword', password);
+        }
+      } else {
+        localStorage.removeItem('rememberedEmail');
+        if (savePasswordConfig) {
+          localStorage.removeItem('rememberedPassword');
+        }
       }
-    } else {
-      // Remove email and password from localStorage
-      localStorage.removeItem('rememberedEmail');
-      if (savePasswordConfig) {
-        localStorage.removeItem('rememberedPassword');
-      }
+
+      // Redirect to dashboard after successful login
+      navigate('/dashboard'); // Redirect to the dashboard
+    } catch (error) {
+      // Extract the error message from the response
+      const errorMessage = error.message || 'Gagal Login';
+      setSnackbar({ open: true, message: errorMessage, severity: 'error' });
     }
-    // Add your login logic here (API call, authentication, etc.)
-    alert('Login successful!');
   };
 
   return (
@@ -146,7 +158,6 @@ const Login = () => {
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                width: '100%',
               }}
             >
               <FormControlLabel
@@ -172,9 +183,7 @@ const Login = () => {
                 mt: 2,
                 mb: 2,
                 backgroundColor: '#0070F3',
-                ':hover': {
-                  backgroundColor: '#0059c1',
-                },
+                ':hover': { backgroundColor: '#0059c1' },
                 borderRadius: '10px',
                 padding: '10px',
                 fontWeight: 'bold',
@@ -190,6 +199,14 @@ const Login = () => {
             </Link>
           </Typography>
         </Box>
+
+        {/* Reusable Snackbar for notifications */}
+        <SnackbarComponent
+          open={snackbar.open}
+          message={snackbar.message}
+          severity={snackbar.severity}
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+        />
       </Paper>
     </Container>
   );
