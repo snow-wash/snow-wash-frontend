@@ -1,136 +1,197 @@
-import React, { useState } from 'react';
-import { Box, Paper, TextField, Button, Snackbar, Alert } from '@mui/material';
-import apiService from '../services/apiService';
-import logo from '../assets/logo.png';
+import React, { useState, useEffect } from 'react';
+import {
+  Container,
+  Box,
+  Typography,
+  TextField,
+  FormControlLabel,
+  Checkbox,
+  Button,
+  Link,
+  Paper,
+} from '@mui/material';
+
+// Configuration variable
+const savePasswordConfig = false; // Set this to false if you don't want to save the password
 
 const Login = () => {
-  const [identifier, setIdentifier] = useState('');
+  // State to manage form inputs
+  const [email, setEmail] = useState(''); // Default email text is now empty
   const [password, setPassword] = useState('');
-  const [snackbar, setSnackbar] = useState({
-    open: false,
-    message: '',
-    severity: '',
-  });
+  const [remember, setRemember] = useState(false);
 
-  const handleLogin = async () => {
-    try {
-      const response = await apiService.post('/auth/login', {
-        identifier,
-        password,
-      });
-      setSnackbar({
-        open: true,
-        message: 'Berhasil Login',
-        severity: 'success',
-      });
-    } catch (error) {
-      const errorMessage = error.message || 'Gagal Login';
-      setSnackbar({ open: true, message: errorMessage, severity: 'error' });
+  // Load email and optionally password from localStorage if "Remember Password" was previously selected
+  useEffect(() => {
+    const savedEmail = localStorage.getItem('rememberedEmail');
+    if (savedEmail) {
+      setEmail(savedEmail);
+      setRemember(true);
     }
+    if (savePasswordConfig) {
+      const savedPassword = localStorage.getItem('rememberedPassword');
+      if (savedPassword) {
+        setPassword(savedPassword);
+      }
+    }
+  }, []);
+
+  // Handle changes in input fields
+  const handleEmailChange = event => {
+    setEmail(event.target.value);
+  };
+
+  const handlePasswordChange = event => {
+    setPassword(event.target.value);
+  };
+
+  // Handle "Remember Password" checkbox toggle
+  const handleRememberChange = event => {
+    setRemember(event.target.checked);
+  };
+
+  // Handle form submission
+  const handleSubmit = event => {
+    event.preventDefault();
+    if (remember) {
+      // Save email to localStorage
+      localStorage.setItem('rememberedEmail', email);
+      if (savePasswordConfig) {
+        // Save password only if the configuration allows it
+        localStorage.setItem('rememberedPassword', password);
+      }
+    } else {
+      // Remove email and password from localStorage
+      localStorage.removeItem('rememberedEmail');
+      if (savePasswordConfig) {
+        localStorage.removeItem('rememberedPassword');
+      }
+    }
+    // Add your login logic here (API call, authentication, etc.)
+    alert('Login successful!');
   };
 
   return (
-    <Box
+    <Container
+      component="main"
       sx={{
-        minHeight: '100vh',
         display: 'flex',
-        justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#2b59c3',
+        justifyContent: 'center',
+        height: '100vh',
+        width: '100vw',
+        minHeight: '100%',
+        minWidth: '100%',
+        margin: 0,
+        padding: 0,
+        backgroundColor: '#0070F3',
+        backgroundImage:
+          'url("https://www.transparenttextures.com/patterns/shattered.png")',
+        backgroundSize: 'cover',
       }}
     >
       <Paper
+        elevation={6}
         sx={{
-          p: 4,
-          maxWidth: 400,
+          padding: '30px',
+          borderRadius: '20px',
+          maxWidth: '400px',
           width: '100%',
-          textAlign: 'center',
-          borderRadius: 2,
-          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-          backgroundColor: '#1a3b8f',
         }}
       >
-        <Box sx={{ mb: 3 }}>
-          <img
-            src={logo}
-            alt="Logo"
-            style={{ width: '80px', height: 'auto' }}
-          />
-        </Box>
-        <TextField
-          variant="outlined"
-          label="Username"
-          type="text"
-          value={identifier}
-          onChange={e => setIdentifier(e.target.value)}
+        <Box
           sx={{
-            mb: 2,
-            width: '100%',
-            input: { color: '#ffffff' },
-            label: { color: '#ffffff' },
-            '& .MuiOutlinedInput-root': {
-              backgroundColor: 'rgba(255, 255, 255, 0.2)',
-              '& fieldset': { borderColor: '#ffffff' },
-              '&:hover fieldset': { borderColor: '#ffffff' },
-              '&.Mui-focused fieldset': { borderColor: '#ffffff' },
-            },
-            '& .MuiInputLabel-root': {
-              color: '#ffffff',
-              '&.Mui-focused': { color: '#ffffff' },
-            },
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
           }}
-        />
-        <TextField
-          variant="outlined"
-          label="Password"
-          type="password"
-          value={password}
-          onChange={e => setPassword(e.target.value)}
-          sx={{
-            mb: 2,
-            width: '100%',
-            input: { color: '#ffffff' },
-            label: { color: '#ffffff' },
-            '& .MuiOutlinedInput-root': {
-              backgroundColor: 'rgba(255, 255, 255, 0.2)',
-              '& fieldset': { borderColor: '#ffffff' },
-              '&:hover fieldset': { borderColor: '#ffffff' },
-              '&.Mui-focused fieldset': { borderColor: '#ffffff' },
-            },
-            '& .MuiInputLabel-root': {
-              color: '#ffffff',
-              '&.Mui-focused': { color: '#ffffff' },
-            },
-          }}
-        />
-        <Button
-          sx={{
-            backgroundColor: '#ffffff',
-            color: '#2b59c3',
-            fontWeight: 'bold',
-            mt: 2,
-            width: '100%',
-            py: 1,
-            '&:hover': { backgroundColor: '#f0f0f0' },
-          }}
-          onClick={handleLogin}
         >
-          Login
-        </Button>
-        <Snackbar
-          open={snackbar.open}
-          autoHideDuration={6000}
-          onClose={() => setSnackbar({ ...snackbar, open: false })}
-        >
-          <Alert
-            onClose={() => setSnackbar({ ...snackbar, open: false })}
-            severity={snackbar.severity}
+          <Typography component="h1" variant="h5" sx={{ fontWeight: 'bold' }}>
+            Login to Account
+          </Typography>
+          <Typography
+            variant="body2"
+            color="textSecondary"
+            sx={{ mt: 1, mb: 3 }}
           >
-            {snackbar.message}
-          </Alert>
-        </Snackbar>
+            Please enter your email and password to continue
+          </Typography>
+          <form onSubmit={handleSubmit}>
+            <TextField
+              margin="normal"
+              fullWidth
+              id="email"
+              label="Email address"
+              name="email"
+              autoComplete="email"
+              value={email}
+              onChange={handleEmailChange}
+              variant="outlined"
+              size="small"
+            />
+            <TextField
+              margin="normal"
+              fullWidth
+              name="password"
+              label="Password"
+              type="password"
+              id="password"
+              autoComplete="current-password"
+              value={password}
+              onChange={handlePasswordChange}
+              variant="outlined"
+              size="small"
+            />
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                width: '100%',
+              }}
+            >
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    value="remember"
+                    color="primary"
+                    checked={remember}
+                    onChange={handleRememberChange}
+                  />
+                }
+                label="Remember Login"
+              />
+              <Link href="#" variant="body2">
+                Forgot Password?
+              </Link>
+            </Box>
+            <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              sx={{
+                mt: 2,
+                mb: 2,
+                backgroundColor: '#0070F3',
+                ':hover': {
+                  backgroundColor: '#0059c1',
+                },
+                borderRadius: '10px',
+                padding: '10px',
+                fontWeight: 'bold',
+              }}
+            >
+              Sign In
+            </Button>
+          </form>
+          <Typography variant="body2">
+            Don’t have an account?{' '}
+            <Link href="#" variant="body2" sx={{ fontWeight: 'bold' }}>
+              Create Account
+            </Link>
+          </Typography>
+        </Box>
       </Paper>
-    </Box>
+    </Container>
   );
 };
 
