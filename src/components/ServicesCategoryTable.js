@@ -176,7 +176,7 @@ const ServicesCategoryTable = () => {
               <TableCell
                 sx={{ whiteSpace: 'nowrap', borderRight: '1px solid #e0e0e0' }}
               >
-                ID
+                No
               </TableCell>
               <TableCell
                 sx={{ width: '20%', borderRight: '1px solid #e0e0e0' }}
@@ -214,7 +214,7 @@ const ServicesCategoryTable = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {categories.map(category => (
+            {categories.map((category, index) => (
               <TableRow key={category.id}>
                 <TableCell
                   sx={{
@@ -222,7 +222,7 @@ const ServicesCategoryTable = () => {
                     borderRight: '1px solid #e0e0e0',
                   }}
                 >
-                  {category.id}
+                  {index + 1}
                 </TableCell>
                 <TableCell sx={{ borderRight: '1px solid #e0e0e0' }}>
                   {category.category_name}

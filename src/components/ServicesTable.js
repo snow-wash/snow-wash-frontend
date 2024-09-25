@@ -101,7 +101,9 @@ const ServiceTable = () => {
       }
     } catch (error) {
       console.error('Error deleting service!', error);
-      showSnackbar('Error deleting service!', 'error');
+      setOpenConfirmDialog(false);
+      setSelectedService(null);
+      showSnackbar(error.message || 'Error deleting service!', 'error');
     }
   };
 
@@ -168,7 +170,7 @@ const ServiceTable = () => {
                   borderRight: '1px solid #e0e0e0',
                 }}
               >
-                ID
+                No
               </TableCell>
               <TableCell
                 sx={{
@@ -190,7 +192,7 @@ const ServiceTable = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {services.map(service => {
+            {services.map((service, index) => {
               const relatedQuota = quotas.find(q => q.id === service.quota_id);
               return (
                 <TableRow
@@ -206,7 +208,7 @@ const ServiceTable = () => {
                       borderRight: '1px solid #e0e0e0',
                     }}
                   >
-                    {service.id}
+                    {index + 1}
                   </TableCell>
                   <TableCell
                     sx={{

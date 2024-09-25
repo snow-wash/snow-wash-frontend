@@ -112,6 +112,7 @@ const QuotaTable = () => {
         })
         .catch(error => {
           setOpenConfirmDialog(false);
+          setSelectedQuota(null);
           showSnackbar(
             error.response?.data?.message || 'Error deleting quota',
             'error'
