@@ -13,9 +13,9 @@ import {
   IconButton,
 } from '@mui/material';
 import { Delete, Edit } from '@mui/icons-material';
-import axios from 'axios';
+import apiService from '../services/apiService'; // Use apiService for API requests
 import AddNewServiceCategoryDialog from './form/AddNewServiceCategoryDialog';
-import SnowDialog from './SnowDialog'; // Import the reusable dialog component
+import SnowDialog from './SnowDialog';
 
 const ServicesCategoryTable = () => {
   const [categories, setCategories] = useState([]);
@@ -29,50 +29,46 @@ const ServicesCategoryTable = () => {
     fetchServices();
   }, []);
 
-  const fetchServicesCategories = () => {
-    axios
-      .get('http://localhost:5000/api/services-category')
-      .then(response => {
-        if (response.data && Array.isArray(response.data.data)) {
-          setCategories(response.data.data);
-        } else {
-          console.error('Unexpected response format:', response.data);
-          setCategories([]);
-        }
-      })
-      .catch(error => {
-        console.error('Error fetching services categories:', error);
-        setCategories([]);
-      });
+  const fetchServicesCategories = async () => {
+    try {
+      const response = await apiService.get('/services-category');
+      setCategories(response.data || []);
+    } catch (error) {
+      console.error('Error fetching services categories:', error);
+    }
   };
 
-  const fetchServices = () => {
-    axios
-      .get('http://localhost:5000/api/services')
-      .then(response => {
-        if (response.data && Array.isArray(response.data.data)) {
-          setServices(response.data.data);
-        } else {
-          console.error('Unexpected response format:', response.data);
-          setServices([]);
-        }
-      })
-      .catch(error => {
-        console.error('Error fetching services!', error);
-        setServices([]);
-      });
+  const fetchServices = async () => {
+    try {
+      const response = await apiService.get('/services');
+      setServices(response.data || []);
+    } catch (error) {
+      console.error('Error fetching services:', error);
+    }
   };
 
-  const handleFormSubmit = newCategory => {
-    axios
-      .post('http://localhost:5000/api/services-category', newCategory)
-      .then(response => {
-        setCategories([...categories, response.data.data]);
-        setOpenDialog(false);
-      })
-      .catch(error => {
-        console.error('Error adding service category!', error);
+  const handleFormSubmit = async newCategory => {
+    try {
+      if (!newCategory.category_name || !newCategory.service_id) {
+        console.error('Category name and service_id are required');
+        return;
+      }
+
+      const response = await apiService.post('/services-category', {
+        name: newCategory.category_name,
+        service_id: newCategory.service_id,
+        minimum_load: newCategory.minimum_load,
+        load_amount: newCategory.load_amount,
+        price: newCategory.price,
+        estimated_time: parseInt(newCategory.estimated_time, 10), // Convert to integer
       });
+
+      console.log(response.data);
+      setCategories([...categories, response.data]);
+      setOpenDialog(false);
+    } catch (error) {
+      console.error('Error adding service category!', error);
+    }
   };
 
   const handleDelete = id => {
@@ -80,21 +76,17 @@ const ServicesCategoryTable = () => {
     setDeleteDialogOpen(true);
   };
 
-  const confirmDelete = () => {
-    axios
-      .delete(`http://localhost:5000/api/services-category/${selectedCategory}`)
-      .then(() => {
-        setCategories(
-          categories.filter(category => category.id !== selectedCategory)
-        );
-        setDeleteDialogOpen(false);
-        setSelectedCategory(null);
-      })
-      .catch(error => {
-        console.error('Error deleting service category!', error);
-        setDeleteDialogOpen(false);
-        setSelectedCategory(null);
-      });
+  const confirmDelete = async () => {
+    try {
+      await apiService.delete(`/services-category/${selectedCategory}`);
+      setCategories(
+        categories.filter(category => category.id !== selectedCategory)
+      );
+      setDeleteDialogOpen(false);
+      setSelectedCategory(null);
+    } catch (error) {
+      console.error('Error deleting service category!', error);
+    }
   };
 
   return (
@@ -167,7 +159,7 @@ const ServicesCategoryTable = () => {
               <TableCell
                 sx={{ width: '10%', borderRight: '1px solid #e0e0e0' }}
               >
-                Estimated Time
+                Estimated Time (hours)
               </TableCell>
               <TableCell sx={{ width: '10%', whiteSpace: 'nowrap' }}>
                 Actions
@@ -201,7 +193,7 @@ const ServicesCategoryTable = () => {
                   {category.price}
                 </TableCell>
                 <TableCell sx={{ borderRight: '1px solid #e0e0e0' }}>
-                  {category.estimated_time.hours}
+                  {category.estimated_time} {/* Display as integer */}
                 </TableCell>
                 <TableCell sx={{ whiteSpace: 'nowrap' }}>
                   <IconButton color="primary">
@@ -229,13 +221,12 @@ const ServicesCategoryTable = () => {
       />
 
       {/* Delete Confirmation Dialog */}
-
       <SnowDialog
         open={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
         title="Confirm Deletion"
         content={`Are you sure you want to delete this service category?`}
-        onConfirm={handleDelete}
+        onConfirm={confirmDelete}
         confirmText="Delete"
         cancelText="Cancel"
       />
