@@ -14,7 +14,7 @@ import {
   Tooltip,
 } from '@mui/material';
 import { Add, Edit, Delete } from '@mui/icons-material';
-import axios from 'axios';
+import apiService from '../services/apiService'; // Import apiService
 import AddNewQuotaDialog from './form/AddNewQuotaDialog';
 import SnowDialog from './SnowDialog';
 import SnackbarComponent from './SnackbarComponent'; // Import SnackbarComponent
@@ -37,11 +37,11 @@ const QuotaTable = () => {
   }, []);
 
   const fetchQuotas = () => {
-    axios
-      .get('http://localhost:5000/api/quotas')
+    apiService
+      .get('/quotas')
       .then(response => {
-        if (response.data && Array.isArray(response.data.data)) {
-          setQuotas(response.data.data);
+        if (response.data && Array.isArray(response.data)) {
+          setQuotas(response.data);
         } else {
           showSnackbar('Unexpected response format', 'error');
           setQuotas([]);
@@ -56,8 +56,8 @@ const QuotaTable = () => {
   const handleFormSubmit = newQuota => {
     if (selectedQuota) {
       // Update existing quota
-      axios
-        .put(`http://localhost:5000/api/quotas/${selectedQuota.id}`, newQuota)
+      apiService
+        .put(`/quotas/${selectedQuota.id}`, newQuota)
         .then(response => {
           fetchQuotas();
           setOpenDialog(false);
@@ -75,8 +75,8 @@ const QuotaTable = () => {
         });
     } else {
       // Add new quota
-      axios
-        .post('http://localhost:5000/api/quotas', newQuota)
+      apiService
+        .post('/quotas', newQuota)
         .then(response => {
           fetchQuotas();
           setOpenDialog(false);
@@ -101,8 +101,8 @@ const QuotaTable = () => {
 
   const handleDelete = () => {
     if (selectedQuota) {
-      axios
-        .delete(`http://localhost:5000/api/quotas/${selectedQuota.id}`)
+      apiService
+        .delete(`/quotas/${selectedQuota.id}`)
         .then(response => {
           fetchQuotas();
           setOpenConfirmDialog(false);
@@ -149,29 +149,27 @@ const QuotaTable = () => {
         <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#1976d2' }}>
           Quota List
         </Typography>
-        {
-          getRole() === SUPERADMIN && (
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={() => {
-                setSelectedQuota(null);
-                setOpenDialog(true);
-              }}
-              startIcon={<Add />}
-              sx={{
-                borderRadius: '25px',
-                py: 1,
-                px: 3,
-                fontWeight: 'bold',
-                backgroundColor: '#1976d2',
-                ':hover': { backgroundColor: '#115293' },
-              }}
-            >
-              Add New Quota
-            </Button>
-          )
-        }
+        {getRole() === SUPERADMIN && (
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => {
+              setSelectedQuota(null);
+              setOpenDialog(true);
+            }}
+            startIcon={<Add />}
+            sx={{
+              borderRadius: '25px',
+              py: 1,
+              px: 3,
+              fontWeight: 'bold',
+              backgroundColor: '#1976d2',
+              ':hover': { backgroundColor: '#115293' },
+            }}
+          >
+            Add New Quota
+          </Button>
+        )}
       </Box>
       <TableContainer
         component={Paper}

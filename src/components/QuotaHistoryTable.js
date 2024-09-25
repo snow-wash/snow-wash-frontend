@@ -10,15 +10,18 @@ import {
   Typography,
   Box,
 } from '@mui/material';
-import axios from 'axios';
+import apiService from '../services/apiService'; // Import apiService
 
 const QuotaHistoryTable = () => {
   const [quotaHistory, setQuotaHistory] = useState([]);
 
   useEffect(() => {
-    // Fetch quota history from the backend
-    axios
-      .get('http://localhost:5000/api/quota-history')
+    fetchQuotaHistory();
+  }, []);
+
+  const fetchQuotaHistory = () => {
+    apiService
+      .get('/quota-history')
       .then(response => {
         if (response.data && Array.isArray(response.data.data)) {
           setQuotaHistory(response.data.data); // Set the 'data' array to quota history
@@ -31,7 +34,7 @@ const QuotaHistoryTable = () => {
         console.error('Error fetching quota history:', error);
         setQuotaHistory([]); // Fallback to an empty array in case of error
       });
-  }, []);
+  };
 
   return (
     <Box
@@ -54,7 +57,7 @@ const QuotaHistoryTable = () => {
         <Table sx={{ minWidth: 650 }}>
           <TableHead sx={{ backgroundColor: '#f5f5f5' }}>
             <TableRow>
-              <TableCell>ID</TableCell>
+              <TableCell>No</TableCell> {/* Change ID to No */}
               <TableCell>Date</TableCell>
               <TableCell>Limit Used</TableCell>
               <TableCell>Limit Remaining</TableCell>
@@ -63,9 +66,9 @@ const QuotaHistoryTable = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {quotaHistory.map(history => (
+            {quotaHistory.map((history, index) => (
               <TableRow key={history.id}>
-                <TableCell>{history.id}</TableCell>
+                <TableCell>{index + 1}</TableCell> {/* Set index + 1 as No */}
                 <TableCell>
                   {new Date(history.date).toLocaleDateString()}
                 </TableCell>

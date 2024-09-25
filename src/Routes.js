@@ -3,7 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import Login from './pages/LoginPage';
 import DashboardLayout from './components/DashboardLayout';
-import Dashboard from './pages/Dashboard';
+import Dashboard from './pages/DashboardPage';
 import User from './pages/User';
 import Service from './pages/ServicePage';
 import Quota from './pages/QuotaPage';
@@ -23,7 +23,14 @@ const AppRoutes = () => {
       <Route path="/login" element={<Login />} />
 
       {/* Dashboard Routes wrapped in DashboardLayout */}
-      <Route path="/dashboard" element={<PrivateRoute><DashboardLayout /></PrivateRoute>}>
+      <Route
+        path="/dashboard"
+        element={
+          <PrivateRoute>
+            <DashboardLayout />
+          </PrivateRoute>
+        }
+      >
         <Route index element={<Dashboard />} />
         <Route path="user" element={<User />} />
         <Route path="service" element={<Service />} />
