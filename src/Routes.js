@@ -2,12 +2,13 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import Login from './pages/LoginPage';
-import DashboardLayout from './components/DashboardLayout'; // New layout component
+import DashboardLayout from './components/DashboardLayout';
 import Dashboard from './pages/Dashboard';
 import User from './pages/User';
 import Service from './pages/ServicePage';
 import Quota from './pages/QuotaPage';
 import Transaction from './pages/TransactionPage';
+import AddTransactionPage from './pages/AddTransactionPage';
 
 const AppRoutes = () => {
   return (
@@ -23,6 +24,7 @@ const AppRoutes = () => {
         <Route path="service" element={<Service />} />
         <Route path="quota" element={<Quota />} />
         <Route path="transaction" element={<Transaction />} />
+        <Route path="transaction/add" element={<AddTransactionPage />} />
       </Route>
 
       {/* Redirect unknown routes to HomePage */}

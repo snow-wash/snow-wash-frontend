@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import {
+  Box,
+  Button,
+  Typography,
   Table,
   TableBody,
   TableCell,
@@ -7,44 +10,33 @@ import {
   TableHead,
   TableRow,
   Paper,
-  Typography,
-  Box,
-  Button,
 } from '@mui/material';
-import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import apiService from '../services/apiService';
 
 const TransactionTable = () => {
   const [transactions, setTransactions] = useState([]);
+  const navigate = useNavigate();
 
-  // Fetch transaction data from the backend
   useEffect(() => {
-    axios
-      .get('http://localhost:5000/api/transactions')
-      .then(response => {
-        if (response.data && Array.isArray(response.data.data)) {
-          setTransactions(response.data.data);
-        } else {
-          console.error('Unexpected response format:', response.data);
-          setTransactions([]);
-        }
-      })
-      .catch(error => {
-        console.error('Error fetching transactions:', error);
-        setTransactions([]);
-      });
+    fetchTransactions();
   }, []);
 
+  const fetchTransactions = async () => {
+    try {
+      const response = await apiService.get('/transactions');
+      setTransactions(response.data || []);
+    } catch (error) {
+      console.error('Error fetching transactions:', error);
+    }
+  };
+
+  const handleAddNewTransaction = () => {
+    navigate('/dashboard/transaction/add'); // Navigate to AddTransactionPage
+  };
+
   return (
-    <Box
-      sx={{
-        p: 4,
-        display: 'flex',
-        flexDirection: 'column',
-        height: 'auto', // Adjust height based on viewport
-        width: '100%',
-        overflow: 'hidden', // Prevent scrollbars
-      }}
-    >
+    <Box sx={{ p: 4 }}>
       <Box
         sx={{
           display: 'flex',
@@ -54,18 +46,22 @@ const TransactionTable = () => {
         }}
       >
         <Typography variant="h6">Transactions</Typography>
-        <Button variant="contained" color="primary">
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={handleAddNewTransaction}
+        >
           Add New Transaction
         </Button>
       </Box>
       <TableContainer
         component={Paper}
-        sx={{ borderRadius: 2, flex: 1, overflow: 'hidden' }}
+        sx={{ borderRadius: 2, overflow: 'hidden' }}
       >
         <Table sx={{ minWidth: 650 }}>
           <TableHead sx={{ backgroundColor: '#f5f5f5' }}>
             <TableRow>
-              <TableCell>ID</TableCell>
+              <TableCell>No</TableCell>
               <TableCell>Customer Name</TableCell>
               <TableCell>Transaction Date</TableCell>
               <TableCell>Total Price</TableCell>
@@ -73,9 +69,9 @@ const TransactionTable = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {transactions.map(transaction => (
+            {transactions.map((transaction, index) => (
               <TableRow key={transaction.id}>
-                <TableCell>{transaction.id}</TableCell>
+                <TableCell>{index + 1}</TableCell>
                 <TableCell>{transaction.customer_name}</TableCell>
                 <TableCell>
                   {new Date(transaction.transaction_date).toLocaleDateString()}
