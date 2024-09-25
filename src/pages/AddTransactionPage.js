@@ -1,22 +1,30 @@
 import React, { useState } from 'react';
-import { Box, Typography, TextField, Button, Popover } from '@mui/material';
+import {
+  Box,
+  Typography,
+  TextField,
+  Button,
+  Dialog,
+  DialogContent,
+} from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import apiService from '../services/apiService';
-import CustomCalendar from '../components/CustomCalendar'; // Import the calendar component
+import CustomCalendar from '../components/CustomCalendar';
 
 const AddTransactionPage = () => {
   const [customerName, setCustomerName] = useState('');
-  const [transactionDate, setTransactionDate] = useState(new Date());
+  const [transactionDate, setTransactionDate] = useState('');
   const [totalPrice, setTotalPrice] = useState('');
   const [status, setStatus] = useState('');
-  const [anchorEl, setAnchorEl] = useState(null);
+  const [calendarOpen, setCalendarOpen] = useState(false);
+
   const navigate = useNavigate();
 
   const handleSubmit = async () => {
     try {
       const newTransaction = {
         customer_name: customerName,
-        transaction_date: transactionDate.toISOString().split('T')[0], // Convert date to string
+        transaction_date: transactionDate,
         total_price: parseFloat(totalPrice),
         status,
       };
@@ -27,20 +35,14 @@ const AddTransactionPage = () => {
     }
   };
 
-  const handleCalendarOpen = event => {
-    setAnchorEl(event.currentTarget);
+  const handleDateSelect = date => {
+    // Set date without time zone offset
+    const utcDate = new Date(
+      Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())
+    );
+    setTransactionDate(utcDate.toISOString().split('T')[0]);
+    setCalendarOpen(false);
   };
-
-  const handleCalendarClose = () => {
-    setAnchorEl(null);
-  };
-
-  const handleDateChange = date => {
-    setTransactionDate(date);
-    handleCalendarClose();
-  };
-
-  const open = Boolean(anchorEl);
 
   return (
     <Box sx={{ p: 3 }}>
@@ -54,24 +56,13 @@ const AddTransactionPage = () => {
       />
       <TextField
         label="Transaction Date"
-        type="text"
         fullWidth
-        value={transactionDate.toLocaleDateString()} // Show selected date
-        onClick={handleCalendarOpen} // Open calendar on click
+        value={transactionDate}
+        onClick={() => setCalendarOpen(true)}
         InputLabelProps={{ shrink: true }}
         sx={{ mt: 2 }}
+        InputProps={{ readOnly: true }}
       />
-      <Popover
-        open={open}
-        anchorEl={anchorEl}
-        onClose={handleCalendarClose}
-        anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'left',
-        }}
-      >
-        <CustomCalendar onChange={handleDateChange} value={transactionDate} />
-      </Popover>
       <TextField
         label="Total Price"
         type="number"
@@ -95,6 +86,27 @@ const AddTransactionPage = () => {
       >
         Submit
       </Button>
+
+      {/* Calendar Dialog */}
+      <Dialog
+        open={calendarOpen}
+        onClose={() => setCalendarOpen(false)}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogContent sx={{ p: 0, textAlign: 'center' }}>
+          <Typography variant="h6" sx={{ mb: 2 }}>
+            Select a Date for Transaction
+          </Typography>
+          <CustomCalendar
+            value={transactionDate ? new Date(transactionDate) : new Date()}
+            onDateSelect={handleDateSelect}
+          />
+          <Typography variant="body1" sx={{ mt: 2, fontSize: '1.2rem' }}>
+            Click on a date to select
+          </Typography>
+        </DialogContent>
+      </Dialog>
     </Box>
   );
 };
