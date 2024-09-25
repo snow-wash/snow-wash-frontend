@@ -1,4 +1,5 @@
 import apiInstance from './authInterceptor';
+import { clearTokens } from './authService';
 
 class ApiService {
   constructor() {
@@ -50,6 +51,9 @@ class ApiService {
   }
 
   handleError(error) {
+    if(error?.status === 403){
+      clearTokens()
+    }
     if (error.response) {
       console.error('API Error:', error.response.data);
       throw error.response.data;
