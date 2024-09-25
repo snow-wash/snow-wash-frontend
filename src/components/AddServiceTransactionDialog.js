@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -16,6 +16,7 @@ import CustomCalendar from './CustomCalendar';
 const AddServiceTransactionDialog = ({ open, onClose, onSubmit }) => {
   const [serviceCategory, setServiceCategory] = useState('');
   const [amount, setAmount] = useState('');
+  const [estimasiHarga, setEstimasiHarga] = useState('');
   const [selectedDate, setSelectedDate] = useState('');
   const [serviceCategories, setServiceCategories] = useState([]);
   const [isConfirmed, setIsConfirmed] = useState(false);
@@ -47,9 +48,18 @@ const AddServiceTransactionDialog = ({ open, onClose, onSubmit }) => {
     setIsConfirmed(false);
   };
 
-  const handleConfirm = () => {
-    if (isFormValid) setIsConfirmed(true);
-  };
+  const handleConfirm = useCallback(() => {
+    if (isFormValid) {
+      console.log(serviceCategory)
+      // get service category by Id
+      const serviceCat = serviceCategories.filter(res => res.id === serviceCategory)
+
+      const amountCount = (Math.ceil(amount/serviceCat[0].load_amount)) * serviceCat[0].price;
+      setEstimasiHarga(amountCount)
+
+      setIsConfirmed(true);
+    }
+  }, [serviceCategory, isFormValid, serviceCategories, amount])
 
   const handleEdit = () => {
     setIsConfirmed(false);
@@ -64,15 +74,18 @@ const AddServiceTransactionDialog = ({ open, onClose, onSubmit }) => {
     setCalendarOpen(false);
   };
 
-  const handleFormSubmit = () => {
+  const handleFormSubmit = useCallback(() => {
+    const serviceCat = serviceCategories.filter(res => res.id === serviceCategory)
     const transactionData = {
       service_category_id: serviceCategory,
+      service_category_detail: serviceCat[0],
       amount: parseInt(amount, 10),
+      estimasi_harga: estimasiHarga,
       date: selectedDate,
     };
     onSubmit(transactionData);
     handleClose();
-  };
+  }, [serviceCategory, amount, estimasiHarga, selectedDate, serviceCategories])
 
   const handleClose = () => {
     resetForm();
@@ -119,15 +132,25 @@ const AddServiceTransactionDialog = ({ open, onClose, onSubmit }) => {
               required
             />
             {isConfirmed && (
-              <TextField
-                label="Pilih Tanggal"
-                variant="outlined"
-                fullWidth
-                value={selectedDate}
-                onClick={() => setCalendarOpen(true)}
-                InputLabelProps={{ shrink: true }}
-                inputProps={{ readOnly: true }}
-              />
+              <>
+                <TextField
+                  label="Estimasi Harga"
+                  variant="outlined"
+                  fullWidth
+                  type="number"
+                  value={estimasiHarga}
+                  disabled
+                />
+                <TextField
+                  label="Pilih Tanggal"
+                  variant="outlined"
+                  fullWidth
+                  value={selectedDate}
+                  onClick={() => setCalendarOpen(true)}
+                  InputLabelProps={{ shrink: true }}
+                  inputProps={{ readOnly: true }}
+                />
+              </>
             )}
           </Box>
         </DialogContent>

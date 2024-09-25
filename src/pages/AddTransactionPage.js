@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   Box,
   Typography,
@@ -10,59 +10,11 @@ import {
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { Add } from '@mui/icons-material'; // Import the Add icon
+import moment from 'moment';
 import apiService from '../services/apiService';
 import CustomCalendar from '../components/CustomCalendar';
 import TableUserConfirm from '../components/TableUserConfirm';
 import AddServiceTransactionDialog from '../components/AddServiceTransactionDialog'; // Import dialog
-
-// Mock Data
-const mockServicesData = [
-  {
-    id: 1,
-    service_name: 'Regular Laundry',
-    service_category_name: 'Laundry Services',
-    amount: 5,
-    price_estimation: 30000,
-    start_date: '2024-09-26 10:00:00',
-    end_date: '2024-09-26 11:00:00',
-  },
-  {
-    id: 2,
-    service_name: 'Dry Cleaning',
-    service_category_name: 'Special Services',
-    amount: 3,
-    price_estimation: 45000,
-    start_date: '2024-09-26 12:00:00',
-    end_date: '2024-09-26 13:30:00',
-  },
-  {
-    id: 3,
-    service_name: 'Ironing Service',
-    service_category_name: 'Laundry Services',
-    amount: 10,
-    price_estimation: 20000,
-    start_date: '2024-09-27 09:00:00',
-    end_date: '2024-09-27 10:00:00',
-  },
-  {
-    id: 4,
-    service_name: 'Express Laundry',
-    service_category_name: 'Fast Services',
-    amount: 2,
-    price_estimation: 60000,
-    start_date: '2024-09-27 11:00:00',
-    end_date: '2024-09-27 11:30:00',
-  },
-  {
-    id: 5,
-    service_name: 'Dresses Cleaning',
-    service_category_name: 'Special Services',
-    amount: 1,
-    price_estimation: 50000,
-    start_date: '2024-09-28 14:00:00',
-    end_date: '2024-09-28 15:30:00',
-  },
-];
 
 const AddTransactionPage = () => {
   const [customerName, setCustomerName] = useState('');
@@ -73,6 +25,7 @@ const AddTransactionPage = () => {
   const [status, setStatus] = useState('');
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [serviceDialogOpen, setServiceDialogOpen] = useState(false); // State for Service Dialog
+  const [dataRecap, setDataRecap] = useState([])
 
   const navigate = useNavigate();
 
@@ -99,6 +52,18 @@ const AddTransactionPage = () => {
     setTransactionDate(utcDate.toISOString().split('T')[0]);
     setCalendarOpen(false);
   };
+
+  const onAddService =  useCallback((res) => {
+    const data = {
+      service_name: res.service_category_detail.service_name,
+      service_category_name: res.service_category_detail.category_name,
+      amount: res.amount,
+      price_estimation: res.estimasi_harga,
+      start_date: moment().format('YYYY-MM-DD'),
+      end_date: res.date
+    }
+    setDataRecap([...dataRecap, data])
+  }, [dataRecap])
 
   return (
     <Box sx={{ p: 3 }}>
@@ -157,7 +122,7 @@ const AddTransactionPage = () => {
 
       {/* Service Transaction Table */}
       <Stack mt={2}>
-        <TableUserConfirm data={mockServicesData} />
+        <TableUserConfirm data={dataRecap} />
       </Stack>
 
       {/* Calendar Dialog */}
@@ -182,10 +147,7 @@ const AddTransactionPage = () => {
       <AddServiceTransactionDialog
         open={serviceDialogOpen}
         onClose={() => setServiceDialogOpen(false)}
-        onSubmit={data => {
-          // Handle the service transaction data submission here
-          console.log('Service Transaction Data:', data);
-        }}
+        onSubmit={onAddService}
       />
     </Box>
   );
