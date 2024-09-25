@@ -96,11 +96,17 @@ const ServicesCategoryTable = () => {
   };
 
   const handleDelete = id => {
+    console.log(id);
     setSelectedCategory(id);
     setDeleteDialogOpen(true);
   };
 
   const confirmDelete = async () => {
+    if (!selectedCategory) {
+      showSnackbar('No category selected for deletion', 'error');
+      return;
+    }
+
     try {
       await apiService.delete(`/services-category/${selectedCategory}`);
       setCategories(
@@ -196,7 +202,7 @@ const ServicesCategoryTable = () => {
               <TableCell
                 sx={{ width: '10%', borderRight: '1px solid #e0e0e0' }}
               >
-                Load Amount
+                Max Load in Machine
               </TableCell>
               <TableCell
                 sx={{ width: '10%', borderRight: '1px solid #e0e0e0' }}

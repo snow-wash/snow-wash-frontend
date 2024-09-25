@@ -24,26 +24,22 @@ const AddNewServiceCategoryDialog = ({
   const [price, setPrice] = useState('');
   const [estimatedTime, setEstimatedTime] = useState('');
 
-  // Reset the form when the dialog is closed
   useEffect(() => {
-    if (!open) {
-      resetForm();
+    if (open) {
+      if (categoryToEdit) {
+        // Populate fields if editing
+        setCategoryName(categoryToEdit.category_name || '');
+        setServiceId(categoryToEdit.service_id?.toString() || '');
+        setMinimumLoad(categoryToEdit.minimum_load?.toString() || '');
+        setLoadAmount(categoryToEdit.load_amount?.toString() || '');
+        setPrice(categoryToEdit.price?.toString() || '');
+        setEstimatedTime(categoryToEdit.estimated_time?.toString() || '');
+      } else {
+        // Reset the form when opening for adding new category
+        resetForm();
+      }
     }
-  }, [open]);
-
-  // Populate fields if editing
-  useEffect(() => {
-    if (categoryToEdit) {
-      setCategoryName(categoryToEdit.category_name);
-      setServiceId(categoryToEdit.service_id.toString());
-      setMinimumLoad(categoryToEdit.minimum_load.toString());
-      setLoadAmount(categoryToEdit.load_amount.toString());
-      setPrice(categoryToEdit.price.toString());
-      setEstimatedTime(categoryToEdit.estimated_time.toString());
-    } else {
-      resetForm();
-    }
-  }, [categoryToEdit]);
+  }, [open, categoryToEdit]);
 
   const resetForm = () => {
     setCategoryName('');
@@ -74,13 +70,7 @@ const AddNewServiceCategoryDialog = ({
   };
 
   return (
-    <Dialog
-      open={open}
-      onClose={handleClose}
-      fullWidth
-      maxWidth="sm"
-      key={categoryToEdit ? categoryToEdit.id : 'new'} // Use key to force re-render
-    >
+    <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
       <Box sx={{ p: 3 }}>
         <DialogTitle>
           {categoryToEdit
@@ -131,7 +121,7 @@ const AddNewServiceCategoryDialog = ({
               required
             />
             <TextField
-              label="Load Amount"
+              label="Max Load in Machine"
               variant="outlined"
               fullWidth
               type="number"
