@@ -12,10 +12,11 @@ import {
   Button,
   IconButton,
 } from '@mui/material';
-import { Delete, Edit } from '@mui/icons-material';
+import { Add, Delete, Edit } from '@mui/icons-material';
 import apiService from '../services/apiService'; // Use apiService for API requests
 import AddNewServiceCategoryDialog from './form/AddNewServiceCategoryDialog';
 import SnowDialog from './SnowDialog';
+import SnackbarComponent from './SnackbarComponent'; // Import the SnackbarComponent
 
 const ServicesCategoryTable = () => {
   const [categories, setCategories] = useState([]);
@@ -23,6 +24,11 @@ const ServicesCategoryTable = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'success',
+  }); // State for Snackbar
 
   useEffect(() => {
     fetchServicesCategories();
@@ -50,8 +56,7 @@ const ServicesCategoryTable = () => {
   const handleFormSubmit = async newCategory => {
     try {
       if (!newCategory.category_name || !newCategory.service_id) {
-        console.error('Category name and service_id are required');
-        return;
+        throw new Error('Category name and service_id are required');
       }
 
       const response = await apiService.post('/services-category', {
@@ -60,13 +65,24 @@ const ServicesCategoryTable = () => {
         minimum_load: newCategory.minimum_load,
         load_amount: newCategory.load_amount,
         price: newCategory.price,
-        estimated_time: parseInt(newCategory.estimated_time, 10), // Convert to integer
+        estimated_time: newCategory.estimated_time,
       });
 
-      console.log(response.data);
       setCategories([...categories, response.data]);
       setOpenDialog(false);
+      // Show success Snackbar
+      setSnackbar({
+        open: true,
+        message: 'Service category added successfully',
+        severity: 'success',
+      });
     } catch (error) {
+      // Show error Snackbar
+      setSnackbar({
+        open: true,
+        message: error.message || 'Error adding service category',
+        severity: 'error',
+      });
       console.error('Error adding service category!', error);
     }
   };
@@ -84,9 +100,25 @@ const ServicesCategoryTable = () => {
       );
       setDeleteDialogOpen(false);
       setSelectedCategory(null);
+      // Show success Snackbar
+      setSnackbar({
+        open: true,
+        message: 'Service category deleted successfully',
+        severity: 'success',
+      });
     } catch (error) {
+      // Show error Snackbar
+      setSnackbar({
+        open: true,
+        message: 'Error deleting service category',
+        severity: 'error',
+      });
       console.error('Error deleting service category!', error);
     }
+  };
+
+  const handleCloseSnackbar = () => {
+    setSnackbar({ ...snackbar, open: false });
   };
 
   return (
@@ -113,6 +145,15 @@ const ServicesCategoryTable = () => {
           variant="contained"
           color="primary"
           onClick={() => setOpenDialog(true)}
+          startIcon={<Add />}
+          sx={{
+            borderRadius: '25px',
+            py: 1,
+            px: 3,
+            fontWeight: 'bold',
+            backgroundColor: '#1976d2',
+            ':hover': { backgroundColor: '#115293' },
+          }}
         >
           Add New Service Category
         </Button>
@@ -159,7 +200,7 @@ const ServicesCategoryTable = () => {
               <TableCell
                 sx={{ width: '10%', borderRight: '1px solid #e0e0e0' }}
               >
-                Estimated Time (hours)
+                Estimated Time
               </TableCell>
               <TableCell sx={{ width: '10%', whiteSpace: 'nowrap' }}>
                 Actions
@@ -193,7 +234,7 @@ const ServicesCategoryTable = () => {
                   {category.price}
                 </TableCell>
                 <TableCell sx={{ borderRight: '1px solid #e0e0e0' }}>
-                  {category.estimated_time} {/* Display as integer */}
+                  {category.estimated_time}
                 </TableCell>
                 <TableCell sx={{ whiteSpace: 'nowrap' }}>
                   <IconButton color="primary">
@@ -229,6 +270,14 @@ const ServicesCategoryTable = () => {
         onConfirm={confirmDelete}
         confirmText="Delete"
         cancelText="Cancel"
+      />
+
+      {/* Snackbar Component */}
+      <SnackbarComponent
+        open={snackbar.open}
+        message={snackbar.message}
+        severity={snackbar.severity}
+        onClose={handleCloseSnackbar}
       />
     </Box>
   );

@@ -1,4 +1,3 @@
-// src/services/apiService.js
 import apiInstance from './authInterceptor';
 
 class ApiService {
@@ -26,6 +25,24 @@ class ApiService {
   async get(endpoint) {
     try {
       const response = await this.api.get(endpoint);
+      return response.data;
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
+
+  async delete(endpoint) {
+    try {
+      const response = await this.api.delete(endpoint);
+      return response.data;
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
+
+  async update(endpoint, data) {
+    try {
+      const response = await this.api.put(endpoint, data);
       return response.data;
     } catch (error) {
       this.handleError(error);

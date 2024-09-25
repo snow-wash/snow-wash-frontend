@@ -14,9 +14,10 @@ import {
   Tooltip,
 } from '@mui/material';
 import { Add, Edit, Delete } from '@mui/icons-material';
-import apiService from '../services/apiService'; // Import apiService
+import apiService from '../services/apiService';
 import AddNewServiceDialog from './form/AddNewServiceDialog';
 import SnowDialog from './SnowDialog';
+import SnackbarComponent from './SnackbarComponent'; // Import SnackbarComponent
 
 const ServiceTable = () => {
   const [services, setServices] = useState([]);
@@ -24,6 +25,11 @@ const ServiceTable = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
   const [selectedService, setSelectedService] = useState(null);
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'success',
+  });
 
   useEffect(() => {
     fetchServices();
@@ -36,6 +42,7 @@ const ServiceTable = () => {
       setServices(response.data);
     } catch (error) {
       console.error('Error fetching services!', error);
+      showSnackbar('Error fetching services!', 'error');
     }
   };
 
@@ -45,6 +52,7 @@ const ServiceTable = () => {
       setQuotas(response.data);
     } catch (error) {
       console.error('Error fetching quotas!', error);
+      showSnackbar('Error fetching quotas!', 'error');
     }
   };
 
@@ -53,8 +61,10 @@ const ServiceTable = () => {
       const response = await apiService.post('/services', newService);
       setServices([...services, response.data]);
       setOpenDialog(false);
+      showSnackbar('Service added successfully!', 'success');
     } catch (error) {
       console.error('Error adding service!', error);
+      showSnackbar(`${error.message}`, 'error');
     }
   };
 
@@ -64,20 +74,29 @@ const ServiceTable = () => {
 
   const handleDelete = async () => {
     try {
+      console.log(selectedService);
       if (selectedService) {
         await apiService.delete(`/services/${selectedService.id}`);
-        fetchServices();
+        setServices(
+          services.filter(service => service.id !== selectedService.id)
+        );
         setOpenConfirmDialog(false);
         setSelectedService(null);
+        showSnackbar('Service deleted successfully!', 'success');
       }
     } catch (error) {
       console.error('Error deleting service!', error);
+      showSnackbar('Error deleting service!', 'error');
     }
   };
 
   const handleOpenConfirmDialog = service => {
     setSelectedService(service);
     setOpenConfirmDialog(true);
+  };
+
+  const showSnackbar = (message, severity) => {
+    setSnackbar({ open: true, message, severity });
   };
 
   return (
@@ -227,6 +246,14 @@ const ServiceTable = () => {
         onConfirm={handleDelete}
         confirmText="Delete"
         cancelText="Cancel"
+      />
+
+      {/* Snackbar Component */}
+      <SnackbarComponent
+        open={snackbar.open}
+        message={snackbar.message}
+        severity={snackbar.severity}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
       />
     </Box>
   );
