@@ -18,6 +18,8 @@ import axios from 'axios';
 import AddNewQuotaDialog from './form/AddNewQuotaDialog';
 import SnowDialog from './SnowDialog';
 import SnackbarComponent from './SnackbarComponent'; // Import SnackbarComponent
+import { getRole } from '../services/roleService';
+import { SUPERADMIN } from '../constants/role';
 
 const QuotaTable = () => {
   const [quotas, setQuotas] = useState([]);
@@ -147,25 +149,29 @@ const QuotaTable = () => {
         <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#1976d2' }}>
           Quota List
         </Typography>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={() => {
-            setSelectedQuota(null);
-            setOpenDialog(true);
-          }}
-          startIcon={<Add />}
-          sx={{
-            borderRadius: '25px',
-            py: 1,
-            px: 3,
-            fontWeight: 'bold',
-            backgroundColor: '#1976d2',
-            ':hover': { backgroundColor: '#115293' },
-          }}
-        >
-          Add New Quota
-        </Button>
+        {
+          getRole() === SUPERADMIN && (
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => {
+                setSelectedQuota(null);
+                setOpenDialog(true);
+              }}
+              startIcon={<Add />}
+              sx={{
+                borderRadius: '25px',
+                py: 1,
+                px: 3,
+                fontWeight: 'bold',
+                backgroundColor: '#1976d2',
+                ':hover': { backgroundColor: '#115293' },
+              }}
+            >
+              Add New Quota
+            </Button>
+          )
+        }
       </Box>
       <TableContainer
         component={Paper}

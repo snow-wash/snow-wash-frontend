@@ -17,6 +17,8 @@ import apiService from '../services/apiService'; // Use apiService for API reque
 import AddNewServiceCategoryDialog from './form/AddNewServiceCategoryDialog';
 import SnowDialog from './SnowDialog';
 import SnackbarComponent from './SnackbarComponent'; // Import the SnackbarComponent
+import { getRole } from '../services/roleService';
+import { SUPERADMIN } from '../constants/role';
 
 const ServicesCategoryTable = () => {
   const [categories, setCategories] = useState([]);
@@ -153,22 +155,26 @@ const ServicesCategoryTable = () => {
         }}
       >
         <Typography variant="h6">Service Categories</Typography>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={() => setOpenDialog(true)}
-          startIcon={<Add />}
-          sx={{
-            borderRadius: '25px',
-            py: 1,
-            px: 3,
-            fontWeight: 'bold',
-            backgroundColor: '#1976d2',
-            ':hover': { backgroundColor: '#115293' },
-          }}
-        >
-          Add New Service Category
-        </Button>
+        {
+          getRole() === SUPERADMIN && (
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => setOpenDialog(true)}
+              startIcon={<Add />}
+              sx={{
+                borderRadius: '25px',
+                py: 1,
+                px: 3,
+                fontWeight: 'bold',
+                backgroundColor: '#1976d2',
+                ':hover': { backgroundColor: '#115293' },
+              }}
+            >
+              Add New Service Category
+            </Button>
+          )
+        }
       </Box>
       <TableContainer
         component={Paper}
