@@ -18,6 +18,8 @@ import apiService from '../services/apiService';
 import AddNewServiceDialog from './form/AddNewServiceDialog';
 import SnowDialog from './SnowDialog';
 import SnackbarComponent from './SnackbarComponent';
+import { getRole } from '../services/roleService';
+import { SUPERADMIN } from '../constants/role';
 
 const ServiceTable = () => {
   const [services, setServices] = useState([]);
@@ -129,25 +131,29 @@ const ServiceTable = () => {
         <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
           Services List
         </Typography>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={() => {
-            setIsEditing(false); // Reset editing mode
-            setOpenDialog(true);
-          }}
-          startIcon={<Add />}
-          sx={{
-            borderRadius: '25px',
-            py: 1,
-            px: 3,
-            fontWeight: 'bold',
-            backgroundColor: '#1976d2',
-            ':hover': { backgroundColor: '#115293' },
-          }}
-        >
-          Add New Service
-        </Button>
+        {
+          getRole() === SUPERADMIN && (
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => {
+                setIsEditing(false); // Reset editing mode
+                setOpenDialog(true);
+              }}
+              startIcon={<Add />}
+              sx={{
+                borderRadius: '25px',
+                py: 1,
+                px: 3,
+                fontWeight: 'bold',
+                backgroundColor: '#1976d2',
+                ':hover': { backgroundColor: '#115293' },
+              }}
+            >
+              Add New Service
+            </Button>
+          )
+        }
       </Box>
       <TableContainer
         component={Paper}
