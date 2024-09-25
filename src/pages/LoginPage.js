@@ -73,6 +73,7 @@ const Login = () => {
         }
       }
 
+      console.log(response.data);
       // Redirect to dashboard after successful login
       navigate('/dashboard'); // Redirect to the dashboard
     } catch (error) {

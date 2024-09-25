@@ -13,16 +13,16 @@ import {
   IconButton,
   Tooltip,
 } from '@mui/material';
-import { Add, Edit, Delete } from '@mui/icons-material'; // Import icons for actions
+import { Add, Edit, Delete } from '@mui/icons-material';
 import axios from 'axios';
-import AddNewQuotaDialog from './form/AddNewQuotaDialog'; // Import the dialog component
-import SnowDialog from './SnowDialog'; // Import SnowDialog component
+import AddNewQuotaDialog from './form/AddNewQuotaDialog';
+import SnowDialog from './SnowDialog';
 
 const QuotaTable = () => {
   const [quotas, setQuotas] = useState([]);
-  const [openDialog, setOpenDialog] = useState(false); // State to control dialog visibility
-  const [openConfirmDialog, setOpenConfirmDialog] = useState(false); // State to control confirmation dialog
-  const [selectedQuota, setSelectedQuota] = useState(null); // State to hold selected quota for deletion
+  const [openDialog, setOpenDialog] = useState(false);
+  const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
+  const [selectedQuota, setSelectedQuota] = useState(null);
 
   useEffect(() => {
     fetchQuotas();
@@ -46,23 +46,39 @@ const QuotaTable = () => {
   };
 
   const handleFormSubmit = newQuota => {
-    axios
-      .post('http://localhost:5000/api/quotas', newQuota)
-      .then(() => {
-        fetchQuotas();
-        setOpenDialog(false);
-      })
-      .catch(error => {
-        console.error('Error adding quota:', error);
-      });
+    if (selectedQuota) {
+      // Update existing quota
+      axios
+        .put(`http://localhost:5000/api/quotas/${selectedQuota.id}`, newQuota)
+        .then(() => {
+          fetchQuotas();
+          setOpenDialog(false);
+          setSelectedQuota(null); // Clear selectedQuota after update
+        })
+        .catch(error => {
+          console.error('Error updating quota:', error);
+        });
+    } else {
+      // Add new quota
+      axios
+        .post('http://localhost:5000/api/quotas', newQuota)
+        .then(() => {
+          fetchQuotas();
+          setOpenDialog(false);
+        })
+        .catch(error => {
+          console.error('Error adding quota:', error);
+        });
+    }
   };
 
-  // Function to handle editing a quota (Placeholder for edit functionality)
+  // Handle editing a quota
   const handleEdit = quota => {
-    console.log('Edit quota:', quota);
+    setSelectedQuota(quota); // Set the selected quota for editing
+    setOpenDialog(true); // Open the dialog with the selected quota
   };
 
-  // Function to handle deletion of a quota
+  // Handle deletion of a quota
   const handleDelete = () => {
     if (selectedQuota) {
       axios
@@ -99,7 +115,10 @@ const QuotaTable = () => {
         <Button
           variant="contained"
           color="primary"
-          onClick={() => setOpenDialog(true)}
+          onClick={() => {
+            setSelectedQuota(null); // Clear selected quota before adding a new one
+            setOpenDialog(true);
+          }}
           startIcon={<Add />}
           sx={{
             borderRadius: '25px',
@@ -131,7 +150,7 @@ const QuotaTable = () => {
                   maxWidth: '50px',
                   minWidth: '50px',
                   whiteSpace: 'nowrap',
-                  borderRight: '1px solid #e0e0e0', // Vertical divider
+                  borderRight: '1px solid #e0e0e0',
                 }}
               >
                 ID
@@ -139,7 +158,7 @@ const QuotaTable = () => {
               <TableCell
                 sx={{
                   fontWeight: 'bold',
-                  borderRight: '1px solid #e0e0e0', // Vertical divider
+                  borderRight: '1px solid #e0e0e0',
                 }}
               >
                 Quota Name
@@ -212,6 +231,7 @@ const QuotaTable = () => {
         open={openDialog}
         onClose={() => setOpenDialog(false)}
         onSubmit={handleFormSubmit}
+        quotaData={selectedQuota} // Pass the selected quota for editing
       />
 
       {/* Confirmation Dialog */}

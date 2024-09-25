@@ -17,7 +17,7 @@ import { Add, Edit, Delete } from '@mui/icons-material';
 import apiService from '../services/apiService';
 import AddNewServiceDialog from './form/AddNewServiceDialog';
 import SnowDialog from './SnowDialog';
-import SnackbarComponent from './SnackbarComponent'; // Import SnackbarComponent
+import SnackbarComponent from './SnackbarComponent';
 
 const ServiceTable = () => {
   const [services, setServices] = useState([]);
@@ -25,6 +25,7 @@ const ServiceTable = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
   const [selectedService, setSelectedService] = useState(null);
+  const [isEditing, setIsEditing] = useState(false); // New state to track edit mode
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: '',
@@ -56,25 +57,39 @@ const ServiceTable = () => {
     }
   };
 
-  const handleFormSubmit = async newService => {
+  const handleFormSubmit = async (service, serviceId) => {
     try {
-      const response = await apiService.post('/services', newService);
-      setServices([...services, response.data]);
+      if (isEditing && serviceId) {
+        // Update service
+        const response = await apiService.put(
+          `/services/${serviceId}`,
+          service
+        );
+        setServices(
+          services.map(s => (s.id === serviceId ? response.data : s))
+        );
+        showSnackbar('Service updated successfully!', 'success');
+      } else {
+        // Add new service
+        const response = await apiService.post('/services', service);
+        setServices([...services, response.data]);
+        showSnackbar('Service added successfully!', 'success');
+      }
       setOpenDialog(false);
-      showSnackbar('Service added successfully!', 'success');
     } catch (error) {
-      console.error('Error adding service!', error);
-      showSnackbar(`${error.message}`, 'error');
+      console.error('Error adding/updating service!', error);
+      showSnackbar('Error saving service!', 'error');
     }
   };
 
   const handleEdit = service => {
-    console.log('Edit service:', service);
+    setSelectedService(service);
+    setIsEditing(true);
+    setOpenDialog(true);
   };
 
   const handleDelete = async () => {
     try {
-      console.log(selectedService);
       if (selectedService) {
         await apiService.delete(`/services/${selectedService.id}`);
         setServices(
@@ -115,7 +130,10 @@ const ServiceTable = () => {
         <Button
           variant="contained"
           color="primary"
-          onClick={() => setOpenDialog(true)}
+          onClick={() => {
+            setIsEditing(false); // Reset editing mode
+            setOpenDialog(true);
+          }}
           startIcon={<Add />}
           sx={{
             borderRadius: '25px',
@@ -229,12 +247,13 @@ const ServiceTable = () => {
         </Table>
       </TableContainer>
 
-      {/* Add New Service Dialog */}
+      {/* Add or Edit Service Dialog */}
       <AddNewServiceDialog
         open={openDialog}
         onClose={() => setOpenDialog(false)}
         onSubmit={handleFormSubmit}
         quotas={quotas}
+        serviceToEdit={isEditing ? selectedService : null} // Pass serviceToEdit for editing
       />
 
       {/* Confirmation Dialog */}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogActions,
@@ -10,9 +10,34 @@ import {
   MenuItem,
 } from '@mui/material';
 
-const AddNewServiceDialog = ({ open, onClose, onSubmit, quotas }) => {
+const AddNewServiceDialog = ({
+  open,
+  onClose,
+  onSubmit,
+  quotas,
+  serviceToEdit,
+}) => {
   const [serviceName, setServiceName] = useState('');
   const [quotaId, setQuotaId] = useState('');
+
+  // Reset the form fields when the dialog is closed
+  useEffect(() => {
+    if (!open) {
+      setServiceName('');
+      setQuotaId('');
+    }
+  }, [open]);
+
+  // Populate fields if editing
+  useEffect(() => {
+    if (serviceToEdit) {
+      setServiceName(serviceToEdit.name);
+      setQuotaId(serviceToEdit.quota_id.toString());
+    } else {
+      setServiceName('');
+      setQuotaId('');
+    }
+  }, [serviceToEdit]);
 
   const handleClose = () => {
     setServiceName('');
@@ -22,18 +47,27 @@ const AddNewServiceDialog = ({ open, onClose, onSubmit, quotas }) => {
 
   const handleSubmit = event => {
     event.preventDefault();
-    const newService = {
+    const serviceData = {
       name: serviceName,
       quota_id: parseInt(quotaId, 10),
     };
-    onSubmit(newService);
+
+    onSubmit(serviceData, serviceToEdit?.id); // Pass service ID if editing
     handleClose();
   };
 
   return (
-    <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
+    <Dialog
+      open={open}
+      onClose={handleClose}
+      fullWidth
+      maxWidth="sm"
+      key={serviceToEdit ? serviceToEdit.id : 'new'} // Use a key to reset state
+    >
       <Box sx={{ p: 3 }}>
-        <DialogTitle>Add New Service</DialogTitle>
+        <DialogTitle>
+          {serviceToEdit ? 'Edit Service' : 'Add New Service'}
+        </DialogTitle>
         <DialogContent>
           <Box
             component="form"
@@ -80,7 +114,7 @@ const AddNewServiceDialog = ({ open, onClose, onSubmit, quotas }) => {
             color="primary"
             onClick={handleSubmit}
           >
-            Add Service
+            {serviceToEdit ? 'Update Service' : 'Add Service'}
           </Button>
         </DialogActions>
       </Box>

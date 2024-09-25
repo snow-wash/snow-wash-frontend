@@ -40,7 +40,7 @@ const ServicesCategoryTable = () => {
       const response = await apiService.get('/services-category');
       setCategories(response.data || []);
     } catch (error) {
-      console.error('Error fetching services categories:', error);
+      showSnackbar('Error fetching services categories', 'error');
     }
   };
 
@@ -49,41 +49,49 @@ const ServicesCategoryTable = () => {
       const response = await apiService.get('/services');
       setServices(response.data || []);
     } catch (error) {
-      console.error('Error fetching services:', error);
+      showSnackbar('Error fetching services', 'error');
     }
   };
 
-  const handleFormSubmit = async newCategory => {
+  const handleFormSubmit = async (newCategory, categoryId = null) => {
     try {
-      if (!newCategory.category_name || !newCategory.service_id) {
-        throw new Error('Category name and service_id are required');
+      if (categoryId) {
+        // Update existing category
+        const response = await apiService.put(
+          `/services-category/${categoryId}`,
+          {
+            name: newCategory.category_name,
+            service_id: newCategory.service_id,
+            minimum_load: newCategory.minimum_load,
+            load_amount: newCategory.load_amount,
+            price: newCategory.price,
+            estimated_time: newCategory.estimated_time,
+          }
+        );
+        const updatedCategories = categories.map(cat =>
+          cat.id === categoryId ? response.data : cat
+        );
+        setCategories(updatedCategories);
+        showSnackbar('Service category updated successfully', 'success');
+      } else {
+        // Add new category
+        const response = await apiService.post('/services-category', {
+          name: newCategory.category_name,
+          service_id: newCategory.service_id,
+          minimum_load: newCategory.minimum_load,
+          load_amount: newCategory.load_amount,
+          price: newCategory.price,
+          estimated_time: newCategory.estimated_time,
+        });
+        setCategories([...categories, response.data]);
+        showSnackbar('Service category added successfully', 'success');
       }
-
-      const response = await apiService.post('/services-category', {
-        name: newCategory.category_name,
-        service_id: newCategory.service_id,
-        minimum_load: newCategory.minimum_load,
-        load_amount: newCategory.load_amount,
-        price: newCategory.price,
-        estimated_time: newCategory.estimated_time,
-      });
-
-      setCategories([...categories, response.data]);
       setOpenDialog(false);
-      // Show success Snackbar
-      setSnackbar({
-        open: true,
-        message: 'Service category added successfully',
-        severity: 'success',
-      });
     } catch (error) {
-      // Show error Snackbar
-      setSnackbar({
-        open: true,
-        message: error.message || 'Error adding service category',
-        severity: 'error',
-      });
-      console.error('Error adding service category!', error);
+      showSnackbar(
+        error.message || 'Error adding/updating service category',
+        'error'
+      );
     }
   };
 
@@ -100,21 +108,19 @@ const ServicesCategoryTable = () => {
       );
       setDeleteDialogOpen(false);
       setSelectedCategory(null);
-      // Show success Snackbar
-      setSnackbar({
-        open: true,
-        message: 'Service category deleted successfully',
-        severity: 'success',
-      });
+      showSnackbar('Service category deleted successfully', 'success');
     } catch (error) {
-      // Show error Snackbar
-      setSnackbar({
-        open: true,
-        message: 'Error deleting service category',
-        severity: 'error',
-      });
-      console.error('Error deleting service category!', error);
+      showSnackbar('Error deleting service category', 'error');
     }
+  };
+
+  const handleEdit = category => {
+    setSelectedCategory(category);
+    setOpenDialog(true);
+  };
+
+  const showSnackbar = (message, severity) => {
+    setSnackbar({ open: true, message, severity });
   };
 
   const handleCloseSnackbar = () => {
@@ -237,7 +243,10 @@ const ServicesCategoryTable = () => {
                   {category.estimated_time}
                 </TableCell>
                 <TableCell sx={{ whiteSpace: 'nowrap' }}>
-                  <IconButton color="primary">
+                  <IconButton
+                    color="primary"
+                    onClick={() => handleEdit(category)}
+                  >
                     <Edit />
                   </IconButton>
                   <IconButton
@@ -253,12 +262,16 @@ const ServicesCategoryTable = () => {
         </Table>
       </TableContainer>
 
-      {/* Add Service Category Dialog */}
+      {/* Add/Edit Service Category Dialog */}
       <AddNewServiceCategoryDialog
         open={openDialog}
-        onClose={() => setOpenDialog(false)}
+        onClose={() => {
+          setOpenDialog(false);
+          setSelectedCategory(null); // Reset selected category on close
+        }}
         onSubmit={handleFormSubmit}
         services={services}
+        categoryToEdit={selectedCategory} // Pass selected category to edit
       />
 
       {/* Delete Confirmation Dialog */}

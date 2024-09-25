@@ -40,7 +40,7 @@ class ApiService {
     }
   }
 
-  async update(endpoint, data) {
+  async put(endpoint, data) {
     try {
       const response = await this.api.put(endpoint, data);
       return response.data;
