@@ -95,14 +95,11 @@ const AddTransactionPage = () => {
         fullWidth
       >
         <DialogContent sx={{ p: 0, textAlign: 'center' }}>
-          <Typography variant="h6" sx={{ mb: 2 }}>
-            Select a Date for Transaction
-          </Typography>
           <CustomCalendar
             value={transactionDate ? new Date(transactionDate) : new Date()}
             onDateSelect={handleDateSelect}
           />
-          <Typography variant="body1" sx={{ mt: 2, fontSize: '1.2rem' }}>
+          <Typography variant="body1" sx={{ m: 2, fontSize: '1.2rem' }}>
             Click on a date to select
           </Typography>
         </DialogContent>

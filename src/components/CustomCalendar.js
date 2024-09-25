@@ -1,20 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Grid, Box, Typography, IconButton, Paper } from '@mui/material';
 import { ArrowBack, ArrowForward } from '@mui/icons-material';
 
-const CustomCalendar = ({ onDateSelect, selectedDate }) => {
-  const [currentDate, setCurrentDate] = useState(new Date());
+const CustomCalendar = ({ value, onDateSelect }) => {
+  const [currentDate, setCurrentDate] = useState(value || new Date());
+  const [selectedDate, setSelectedDate] = useState(value);
 
-  const today = new Date();
-  const isSameDay = (d1, d2) =>
-    d1 &&
-    d2 &&
-    d1.getFullYear() === d2.getFullYear() &&
-    d1.getMonth() === d2.getMonth() &&
-    d1.getDate() === d2.getDate();
-
-  const isPastDate = date => date < today.setHours(0, 0, 0, 0);
-
+  // Get first and last day of the month
   const firstDay = new Date(
     currentDate.getFullYear(),
     currentDate.getMonth(),
@@ -25,11 +17,13 @@ const CustomCalendar = ({ onDateSelect, selectedDate }) => {
     currentDate.getMonth() + 1,
     0
   );
-
   const daysInMonth = lastDay.getDate();
   const firstDayIndex = firstDay.getDay();
+
+  // Days array
   const daysArray = [...Array(daysInMonth + firstDayIndex).keys()];
 
+  // Handle month navigation
   const handlePrevMonth = () => {
     setCurrentDate(new Date(currentDate.setMonth(currentDate.getMonth() - 1)));
   };
@@ -38,10 +32,30 @@ const CustomCalendar = ({ onDateSelect, selectedDate }) => {
     setCurrentDate(new Date(currentDate.setMonth(currentDate.getMonth() + 1)));
   };
 
+  // Handle date selection
   const handleDateClick = date => {
-    if (!isPastDate(date)) {
+    if (date >= new Date().setHours(0, 0, 0, 0)) {
+      setSelectedDate(date);
       onDateSelect(date);
     }
+  };
+
+  const isToday = date => {
+    const today = new Date();
+    return (
+      date.getDate() === today.getDate() &&
+      date.getMonth() === today.getMonth() &&
+      date.getFullYear() === today.getFullYear()
+    );
+  };
+
+  const isSelected = date => {
+    return (
+      selectedDate &&
+      date.getDate() === selectedDate.getDate() &&
+      date.getMonth() === selectedDate.getMonth() &&
+      date.getFullYear() === selectedDate.getFullYear()
+    );
   };
 
   return (
@@ -77,43 +91,38 @@ const CustomCalendar = ({ onDateSelect, selectedDate }) => {
             currentDate.getMonth(),
             day
           );
-
-          // Check for valid date before using getFullYear()
-          const isToday = date && isSameDay(date, today);
-          const isSelected = date && isSameDay(date, selectedDate);
-          const isDisabled = isPastDate(date) && !isToday;
-
+          const past = date < new Date().setHours(0, 0, 0, 0);
           return (
             <Grid item xs={1.71} key={index}>
               {index >= firstDayIndex && (
                 <Box
-                  onClick={() => handleDateClick(date)}
                   sx={{
                     p: 1,
                     height: 80,
                     borderRadius: 1,
-                    backgroundColor: isDisabled
+                    backgroundColor: isSelected(date)
+                      ? 'green'
+                      : past
                       ? 'grey.300'
-                      : isSelected
-                      ? 'warning.main'
                       : 'primary.light',
-                    color: isDisabled
-                      ? 'text.disabled'
-                      : 'primary.contrastText',
+                    color: 'primary.contrastText',
                     display: 'flex',
                     flexDirection: 'column',
                     justifyContent: 'center',
                     alignItems: 'center',
-                    cursor: isDisabled ? 'not-allowed' : 'pointer',
-                    border: isToday ? '2px solid green' : 'none',
+                    cursor: past ? 'default' : 'pointer',
                     '&:hover': {
-                      backgroundColor: !isDisabled && 'primary.dark',
+                      backgroundColor: past ? 'grey.300' : 'primary.dark',
                     },
+                    border: isToday(date) ? '2px solid green' : 'none',
                   }}
+                  onClick={() => handleDateClick(date)}
                 >
                   <Typography variant="body1">{day}</Typography>
-                  {isToday && <Typography variant="caption">Today</Typography>}
-                  {isSelected && (
+                  {isToday(date) && (
+                    <Typography variant="caption">Today</Typography>
+                  )}
+                  {isSelected(date) && (
                     <Typography variant="caption">Selected Date</Typography>
                   )}
                 </Box>
