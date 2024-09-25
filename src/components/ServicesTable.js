@@ -10,81 +10,224 @@ import {
   Button,
   Typography,
   Box,
+  IconButton,
+  Tooltip,
 } from '@mui/material';
-import axios from 'axios';
+import { Add, Edit, Delete } from '@mui/icons-material';
+import apiService from '../services/apiService'; // Import apiService
+import AddNewServiceDialog from './form/AddNewServiceDialog';
+import SnowDialog from './SnowDialog';
 
 const ServiceTable = () => {
   const [services, setServices] = useState([]);
+  const [quotas, setQuotas] = useState([]);
+  const [openDialog, setOpenDialog] = useState(false);
+  const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
+  const [selectedService, setSelectedService] = useState(null);
 
   useEffect(() => {
-    // Fetch services from the backend
-    axios
-      .get('http://localhost:5000/api/services')
-      .then(response => {
-        // Assuming response.data contains the expected structure
-        if (response.data && Array.isArray(response.data.data)) {
-          setServices(response.data.data); // Set the 'data' array to services
-        } else {
-          console.error('Unexpected response format:', response.data);
-          setServices([]); // Fallback to an empty array if the structure is unexpected
-        }
-      })
-      .catch(error => {
-        console.error('Error fetching services:', error);
-        setServices([]); // Fallback to an empty array in case of error
-      });
+    fetchServices();
+    fetchQuotas();
   }, []);
 
+  const fetchServices = async () => {
+    try {
+      const response = await apiService.get('/services');
+      setServices(response.data);
+    } catch (error) {
+      console.error('Error fetching services!', error);
+    }
+  };
+
+  const fetchQuotas = async () => {
+    try {
+      const response = await apiService.get('/quotas');
+      setQuotas(response.data);
+    } catch (error) {
+      console.error('Error fetching quotas!', error);
+    }
+  };
+
+  const handleFormSubmit = async newService => {
+    try {
+      const response = await apiService.post('/services', newService);
+      setServices([...services, response.data]);
+      setOpenDialog(false);
+    } catch (error) {
+      console.error('Error adding service!', error);
+    }
+  };
+
+  const handleEdit = service => {
+    console.log('Edit service:', service);
+  };
+
+  const handleDelete = async () => {
+    try {
+      if (selectedService) {
+        await apiService.delete(`/services/${selectedService.id}`);
+        fetchServices();
+        setOpenConfirmDialog(false);
+        setSelectedService(null);
+      }
+    } catch (error) {
+      console.error('Error deleting service!', error);
+    }
+  };
+
+  const handleOpenConfirmDialog = service => {
+    setSelectedService(service);
+    setOpenConfirmDialog(true);
+  };
+
   return (
-    <Box
-      sx={{
-        p: 4,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'left',
-      }}
-    >
+    <Box sx={{ p: 4 }}>
       <Box
         sx={{
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
           mb: 2,
-          width: '100%',
         }}
       >
-        <Typography variant="h6">Services</Typography>
-        <Button variant="contained" color="primary">
+        <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#1976d2' }}>
+          Services List
+        </Typography>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => setOpenDialog(true)}
+          startIcon={<Add />}
+          sx={{
+            borderRadius: '25px',
+            py: 1,
+            px: 3,
+            fontWeight: 'bold',
+            backgroundColor: '#1976d2',
+            ':hover': { backgroundColor: '#115293' },
+          }}
+        >
           Add New Service
         </Button>
       </Box>
       <TableContainer
         component={Paper}
-        sx={{ width: 'auto', overflowX: 'auto', borderRadius: 2 }}
+        sx={{
+          mt: 2,
+          boxShadow: '0px 3px 6px rgba(0,0,0,0.1)',
+          borderRadius: 2,
+          overflow: 'hidden',
+        }}
       >
-        <Table sx={{ minWidth: 'auto', width: 'auto' }}>
-          <TableHead sx={{ backgroundColor: '#f5f5f5' }}>
+        <Table sx={{ tableLayout: 'auto' }}>
+          <TableHead sx={{ backgroundColor: '#f0f4f7' }}>
             <TableRow>
-              <TableCell sx={{ whiteSpace: 'nowrap' }}>ID</TableCell>
-              <TableCell sx={{ width: '100%' }}>Name</TableCell>
-              {/* <TableCell sx={{ whiteSpace: 'nowrap' }}>Quota ID</TableCell> */}
+              <TableCell
+                sx={{
+                  fontWeight: 'bold',
+                  maxWidth: '50px',
+                  minWidth: '50px',
+                  whiteSpace: 'nowrap',
+                  borderRight: '1px solid #e0e0e0',
+                }}
+              >
+                ID
+              </TableCell>
+              <TableCell
+                sx={{
+                  fontWeight: 'bold',
+                  borderRight: '1px solid #e0e0e0',
+                }}
+              >
+                Service Name
+              </TableCell>
+              <TableCell
+                sx={{
+                  fontWeight: 'bold',
+                  borderRight: '1px solid #e0e0e0',
+                }}
+              >
+                Quota Name
+              </TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {services.map(service => (
-              <TableRow key={service.id}>
-                <TableCell sx={{ whiteSpace: 'nowrap' }}>
-                  {service.id}
-                </TableCell>
-                <TableCell sx={{ width: '100%' }}>{service.name}</TableCell>
-                {/* <TableCell sx={{ whiteSpace: 'nowrap' }}>
-                  {service.quota_id}
-                </TableCell> */}
-              </TableRow>
-            ))}
+            {services.map(service => {
+              const relatedQuota = quotas.find(q => q.id === service.quota_id);
+              return (
+                <TableRow
+                  key={service.id}
+                  sx={{ '&:hover': { backgroundColor: '#f9f9f9' } }}
+                >
+                  <TableCell
+                    sx={{
+                      maxWidth: '50px',
+                      minWidth: '50px',
+                      whiteSpace: 'nowrap',
+                      textOverflow: 'ellipsis',
+                      borderRight: '1px solid #e0e0e0',
+                    }}
+                  >
+                    {service.id}
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      borderRight: '1px solid #e0e0e0',
+                    }}
+                  >
+                    {service.name}
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      borderRight: '1px solid #e0e0e0',
+                    }}
+                  >
+                    {relatedQuota ? relatedQuota.name : 'N/A'}
+                  </TableCell>
+                  <TableCell sx={{ display: 'flex', justifyContent: 'center' }}>
+                    <Tooltip title="Edit">
+                      <IconButton
+                        onClick={() => handleEdit(service)}
+                        color="primary"
+                      >
+                        <Edit />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Delete">
+                      <IconButton
+                        onClick={() => handleOpenConfirmDialog(service)}
+                        color="error"
+                      >
+                        <Delete />
+                      </IconButton>
+                    </Tooltip>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </TableContainer>
+
+      {/* Add New Service Dialog */}
+      <AddNewServiceDialog
+        open={openDialog}
+        onClose={() => setOpenDialog(false)}
+        onSubmit={handleFormSubmit}
+        quotas={quotas}
+      />
+
+      {/* Confirmation Dialog */}
+      <SnowDialog
+        open={openConfirmDialog}
+        onClose={() => setOpenConfirmDialog(false)}
+        title="Confirm Deletion"
+        content={`Are you sure you want to delete the service "${selectedService?.name}"?`}
+        onConfirm={handleDelete}
+        confirmText="Delete"
+        cancelText="Cancel"
+      />
     </Box>
   );
 };

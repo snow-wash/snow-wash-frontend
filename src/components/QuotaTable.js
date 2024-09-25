@@ -1,5 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
+  Box,
+  Button,
+  Typography,
   Table,
   TableBody,
   TableCell,
@@ -7,44 +10,81 @@ import {
   TableHead,
   TableRow,
   Paper,
-  Typography,
-  Box,
-  Button,
+  IconButton,
+  Tooltip,
 } from '@mui/material';
+import { Add, Edit, Delete } from '@mui/icons-material'; // Import icons for actions
 import axios from 'axios';
+import AddNewQuotaDialog from './form/AddNewQuotaDialog'; // Import the dialog component
+import SnowDialog from './SnowDialog'; // Import SnowDialog component
 
 const QuotaTable = () => {
   const [quotas, setQuotas] = useState([]);
+  const [openDialog, setOpenDialog] = useState(false); // State to control dialog visibility
+  const [openConfirmDialog, setOpenConfirmDialog] = useState(false); // State to control confirmation dialog
+  const [selectedQuota, setSelectedQuota] = useState(null); // State to hold selected quota for deletion
 
   useEffect(() => {
-    // Fetch quotas from the backend
+    fetchQuotas();
+  }, []);
+
+  const fetchQuotas = () => {
     axios
       .get('http://localhost:5000/api/quotas')
       .then(response => {
         if (response.data && Array.isArray(response.data.data)) {
-          setQuotas(response.data.data); // Set the 'data' array to quotas
+          setQuotas(response.data.data);
         } else {
           console.error('Unexpected response format:', response.data);
-          setQuotas([]); // Fallback to an empty array if the structure is unexpected
+          setQuotas([]);
         }
       })
       .catch(error => {
         console.error('Error fetching quotas:', error);
-        setQuotas([]); // Fallback to an empty array in case of error
+        setQuotas([]);
       });
-  }, []);
+  };
+
+  const handleFormSubmit = newQuota => {
+    axios
+      .post('http://localhost:5000/api/quotas', newQuota)
+      .then(() => {
+        fetchQuotas();
+        setOpenDialog(false);
+      })
+      .catch(error => {
+        console.error('Error adding quota:', error);
+      });
+  };
+
+  // Function to handle editing a quota (Placeholder for edit functionality)
+  const handleEdit = quota => {
+    console.log('Edit quota:', quota);
+  };
+
+  // Function to handle deletion of a quota
+  const handleDelete = () => {
+    if (selectedQuota) {
+      axios
+        .delete(`http://localhost:5000/api/quotas/${selectedQuota.id}`)
+        .then(() => {
+          fetchQuotas();
+          setOpenConfirmDialog(false);
+          setSelectedQuota(null);
+        })
+        .catch(error => {
+          console.error('Error deleting quota:', error);
+        });
+    }
+  };
+
+  const handleOpenConfirmDialog = quota => {
+    setSelectedQuota(quota);
+    setOpenConfirmDialog(true);
+  };
 
   return (
-    <Box
-      sx={{
-        p: 4,
-        display: 'flex',
-        flexDirection: 'column',
-        height: 'auto', // Adjust height based on viewport
-        width: '100%',
-        overflow: 'hidden', // Prevent scrollbars
-      }}
-    >
+    <Box sx={{ p: 4 }}>
       <Box
         sx={{
           display: 'flex',
@@ -53,34 +93,137 @@ const QuotaTable = () => {
           mb: 2,
         }}
       >
-        <Typography variant="h6">Quota List</Typography>
-        <Button variant="contained" color="primary">
+        <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#1976d2' }}>
+          Quota List
+        </Typography>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => setOpenDialog(true)}
+          startIcon={<Add />}
+          sx={{
+            borderRadius: '25px',
+            py: 1,
+            px: 3,
+            fontWeight: 'bold',
+            backgroundColor: '#1976d2',
+            ':hover': { backgroundColor: '#115293' },
+          }}
+        >
           Add New Quota
         </Button>
       </Box>
       <TableContainer
         component={Paper}
-        sx={{ borderRadius: 2, flex: 1, overflow: 'hidden' }}
+        sx={{
+          mt: 2,
+          boxShadow: '0px 3px 6px rgba(0,0,0,0.1)',
+          borderRadius: 2,
+          overflow: 'hidden',
+        }}
       >
-        <Table sx={{ minWidth: 650 }}>
-          <TableHead sx={{ backgroundColor: '#f5f5f5' }}>
+        <Table sx={{ tableLayout: 'auto' }}>
+          <TableHead sx={{ backgroundColor: '#f0f4f7' }}>
             <TableRow>
-              <TableCell>ID</TableCell>
-              <TableCell>Quota Name</TableCell>
-              <TableCell>Limit</TableCell>
+              <TableCell
+                sx={{
+                  fontWeight: 'bold',
+                  maxWidth: '50px',
+                  minWidth: '50px',
+                  whiteSpace: 'nowrap',
+                  borderRight: '1px solid #e0e0e0', // Vertical divider
+                }}
+              >
+                ID
+              </TableCell>
+              <TableCell
+                sx={{
+                  fontWeight: 'bold',
+                  borderRight: '1px solid #e0e0e0', // Vertical divider
+                }}
+              >
+                Quota Name
+              </TableCell>
+              <TableCell
+                sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0' }}
+              >
+                Limit
+              </TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {quotas.map(quota => (
-              <TableRow key={quota.id}>
-                <TableCell>{quota.id}</TableCell>
-                <TableCell>{quota.name}</TableCell>
-                <TableCell>{quota.quota_limit}</TableCell>
+              <TableRow
+                key={quota.id}
+                sx={{ '&:hover': { backgroundColor: '#f9f9f9' } }}
+              >
+                <TableCell
+                  sx={{
+                    maxWidth: '50px',
+                    minWidth: '50px',
+                    whiteSpace: 'nowrap',
+                    textOverflow: 'ellipsis',
+                    borderRight: '1px solid #e0e0e0',
+                  }}
+                >
+                  {quota.id}
+                </TableCell>
+                <TableCell
+                  sx={{
+                    borderRight: '1px solid #e0e0e0',
+                  }}
+                >
+                  {quota.name}
+                </TableCell>
+                <TableCell
+                  sx={{
+                    borderRight: '1px solid #e0e0e0',
+                  }}
+                >
+                  {quota.quota_limit}
+                </TableCell>
+                <TableCell sx={{ display: 'flex', justifyContent: 'center' }}>
+                  <Tooltip title="Edit">
+                    <IconButton
+                      onClick={() => handleEdit(quota)}
+                      color="primary"
+                    >
+                      <Edit />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="Delete">
+                    <IconButton
+                      onClick={() => handleOpenConfirmDialog(quota)}
+                      color="error"
+                    >
+                      <Delete />
+                    </IconButton>
+                  </Tooltip>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </TableContainer>
+
+      {/* Add New Quota Dialog */}
+      <AddNewQuotaDialog
+        open={openDialog}
+        onClose={() => setOpenDialog(false)}
+        onSubmit={handleFormSubmit}
+      />
+
+      {/* Confirmation Dialog */}
+      <SnowDialog
+        open={openConfirmDialog}
+        onClose={() => setOpenConfirmDialog(false)}
+        title="Confirm Deletion"
+        content={`Are you sure you want to delete the quota "${selectedQuota?.name}"?`}
+        onConfirm={handleDelete}
+        confirmText="Delete"
+        cancelText="Cancel"
+      />
     </Box>
   );
 };
