@@ -9,9 +9,11 @@ import {
   Stack,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import { Add } from '@mui/icons-material'; // Import the Add icon
 import apiService from '../services/apiService';
 import CustomCalendar from '../components/CustomCalendar';
 import TableUserConfirm from '../components/TableUserConfirm';
+import AddServiceTransactionDialog from '../components/AddServiceTransactionDialog'; // Import dialog
 
 // Mock Data
 const mockServicesData = [
@@ -62,7 +64,6 @@ const mockServicesData = [
   },
 ];
 
-
 const AddTransactionPage = () => {
   const [customerName, setCustomerName] = useState('');
   const [nomorHp, setNomorHp] = useState('');
@@ -71,6 +72,7 @@ const AddTransactionPage = () => {
   const [totalPrice, setTotalPrice] = useState('');
   const [status, setStatus] = useState('');
   const [calendarOpen, setCalendarOpen] = useState(false);
+  const [serviceDialogOpen, setServiceDialogOpen] = useState(false); // State for Service Dialog
 
   const navigate = useNavigate();
 
@@ -122,30 +124,28 @@ const AddTransactionPage = () => {
         onChange={e => setAlamat(e.target.value)}
         sx={{ mt: 2 }}
       />
-      <TextField
-        label="Transaction Date"
-        fullWidth
-        value={transactionDate}
-        onClick={() => setCalendarOpen(true)}
-        InputLabelProps={{ shrink: true }}
-        sx={{ mt: 2 }}
-        InputProps={{ readOnly: true }}
-      />
-      <TextField
-        label="Total Price"
-        type="number"
-        fullWidth
-        value={totalPrice}
-        onChange={e => setTotalPrice(e.target.value)}
-        sx={{ mt: 2 }}
-      />
-      <TextField
-        label="Status"
-        fullWidth
-        value={status}
-        onChange={e => setStatus(e.target.value)}
-        sx={{ mt: 2 }}
-      />
+
+      {/* Add Service Transaction Button */}
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={() => setServiceDialogOpen(true)}
+        startIcon={<Add />}
+        sx={{
+          borderRadius: '25px',
+          py: 1,
+          px: 3,
+          mr: 6,
+          fontWeight: 'bold',
+          backgroundColor: '#1976d2',
+          ':hover': { backgroundColor: '#115293' },
+          mt: 2,
+        }}
+      >
+        Add Service Transaction
+      </Button>
+
+      {/* Submit Button */}
       <Button
         variant="contained"
         color="primary"
@@ -154,8 +154,10 @@ const AddTransactionPage = () => {
       >
         Submit
       </Button>
+
+      {/* Service Transaction Table */}
       <Stack mt={2}>
-        <TableUserConfirm data={mockServicesData}/>
+        <TableUserConfirm data={mockServicesData} />
       </Stack>
 
       {/* Calendar Dialog */}
@@ -175,6 +177,16 @@ const AddTransactionPage = () => {
           </Typography>
         </DialogContent>
       </Dialog>
+
+      {/* Service Transaction Dialog */}
+      <AddServiceTransactionDialog
+        open={serviceDialogOpen}
+        onClose={() => setServiceDialogOpen(false)}
+        onSubmit={data => {
+          // Handle the service transaction data submission here
+          console.log('Service Transaction Data:', data);
+        }}
+      />
     </Box>
   );
 };
