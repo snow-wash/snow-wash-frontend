@@ -10,6 +10,11 @@ import Quota from './pages/QuotaPage';
 import Transaction from './pages/TransactionPage';
 import AddTransactionPage from './pages/AddTransactionPage';
 
+const PrivateRoute = ({ children }) => {
+  const userData = localStorage.getItem('userData');
+  return userData ? children : <Navigate to="/login" />;
+};
+
 const AppRoutes = () => {
   return (
     <Routes>
@@ -18,7 +23,7 @@ const AppRoutes = () => {
       <Route path="/login" element={<Login />} />
 
       {/* Dashboard Routes wrapped in DashboardLayout */}
-      <Route path="/dashboard" element={<DashboardLayout />}>
+      <Route path="/dashboard" element={<PrivateRoute><DashboardLayout /></PrivateRoute>}>
         <Route index element={<Dashboard />} />
         <Route path="user" element={<User />} />
         <Route path="service" element={<Service />} />
