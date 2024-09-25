@@ -13,6 +13,7 @@ import {
 import { useNavigate } from 'react-router-dom'; // Import useNavigate hook
 import apiService from '../services/apiService'; // Import API service
 import SnackbarComponent from '../components/SnackbarComponent'; // Import the reusable Snackbar component
+import { setRefreshToken, setToken } from '../services/authService';
 
 const savePasswordConfig = false;
 
@@ -73,6 +74,11 @@ const Login = () => {
         }
       }
 
+      // set token
+      setToken(response.data.token)
+      setRefreshToken(response.data.refresh_token)
+      localStorage.setItem('userData', JSON.stringify(response.data));
+      
       console.log(response.data);
       // Redirect to dashboard after successful login
       navigate('/dashboard'); // Redirect to the dashboard
