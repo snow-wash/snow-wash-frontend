@@ -6,13 +6,67 @@ import {
   Button,
   Dialog,
   DialogContent,
+  Stack,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import apiService from '../services/apiService';
 import CustomCalendar from '../components/CustomCalendar';
+import TableUserConfirm from '../components/TableUserConfirm';
+
+// Mock Data
+const mockServicesData = [
+  {
+    id: 1,
+    service_name: 'Regular Laundry',
+    service_category_name: 'Laundry Services',
+    amount: 5,
+    price_estimation: 30000,
+    start_date: '2024-09-26 10:00:00',
+    end_date: '2024-09-26 11:00:00',
+  },
+  {
+    id: 2,
+    service_name: 'Dry Cleaning',
+    service_category_name: 'Special Services',
+    amount: 3,
+    price_estimation: 45000,
+    start_date: '2024-09-26 12:00:00',
+    end_date: '2024-09-26 13:30:00',
+  },
+  {
+    id: 3,
+    service_name: 'Ironing Service',
+    service_category_name: 'Laundry Services',
+    amount: 10,
+    price_estimation: 20000,
+    start_date: '2024-09-27 09:00:00',
+    end_date: '2024-09-27 10:00:00',
+  },
+  {
+    id: 4,
+    service_name: 'Express Laundry',
+    service_category_name: 'Fast Services',
+    amount: 2,
+    price_estimation: 60000,
+    start_date: '2024-09-27 11:00:00',
+    end_date: '2024-09-27 11:30:00',
+  },
+  {
+    id: 5,
+    service_name: 'Dresses Cleaning',
+    service_category_name: 'Special Services',
+    amount: 1,
+    price_estimation: 50000,
+    start_date: '2024-09-28 14:00:00',
+    end_date: '2024-09-28 15:30:00',
+  },
+];
+
 
 const AddTransactionPage = () => {
   const [customerName, setCustomerName] = useState('');
+  const [nomorHp, setNomorHp] = useState('');
+  const [alamat, setAlamat] = useState('');
   const [transactionDate, setTransactionDate] = useState('');
   const [totalPrice, setTotalPrice] = useState('');
   const [status, setStatus] = useState('');
@@ -55,6 +109,20 @@ const AddTransactionPage = () => {
         sx={{ mt: 2 }}
       />
       <TextField
+        label="No HP"
+        fullWidth
+        value={nomorHp}
+        onChange={e => setNomorHp(e.target.value)}
+        sx={{ mt: 2 }}
+      />
+      <TextField
+        label="Alamat"
+        fullWidth
+        value={alamat}
+        onChange={e => setAlamat(e.target.value)}
+        sx={{ mt: 2 }}
+      />
+      <TextField
         label="Transaction Date"
         fullWidth
         value={transactionDate}
@@ -86,6 +154,9 @@ const AddTransactionPage = () => {
       >
         Submit
       </Button>
+      <Stack mt={2}>
+        <TableUserConfirm data={mockServicesData}/>
+      </Stack>
 
       {/* Calendar Dialog */}
       <Dialog
