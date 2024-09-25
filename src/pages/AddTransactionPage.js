@@ -96,7 +96,7 @@ const AddTransactionPage = () => {
       >
         <DialogContent sx={{ p: 0, textAlign: 'center' }}>
           <CustomCalendar
-            value={transactionDate ? new Date(transactionDate) : new Date()}
+            value={transactionDate ? new Date(transactionDate) : ''}
             onDateSelect={handleDateSelect}
           />
           <Typography variant="body1" sx={{ m: 2, fontSize: '1.2rem' }}>
