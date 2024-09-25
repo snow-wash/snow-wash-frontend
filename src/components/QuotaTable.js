@@ -17,12 +17,18 @@ import { Add, Edit, Delete } from '@mui/icons-material';
 import axios from 'axios';
 import AddNewQuotaDialog from './form/AddNewQuotaDialog';
 import SnowDialog from './SnowDialog';
+import SnackbarComponent from './SnackbarComponent'; // Import SnackbarComponent
 
 const QuotaTable = () => {
   const [quotas, setQuotas] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
   const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
   const [selectedQuota, setSelectedQuota] = useState(null);
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: '',
+  }); // State for Snackbar
 
   useEffect(() => {
     fetchQuotas();
@@ -35,12 +41,12 @@ const QuotaTable = () => {
         if (response.data && Array.isArray(response.data.data)) {
           setQuotas(response.data.data);
         } else {
-          console.error('Unexpected response format:', response.data);
+          showSnackbar('Unexpected response format', 'error');
           setQuotas([]);
         }
       })
       .catch(error => {
-        console.error('Error fetching quotas:', error);
+        showSnackbar('Error fetching quotas', 'error');
         setQuotas([]);
       });
   };
@@ -50,46 +56,66 @@ const QuotaTable = () => {
       // Update existing quota
       axios
         .put(`http://localhost:5000/api/quotas/${selectedQuota.id}`, newQuota)
-        .then(() => {
+        .then(response => {
           fetchQuotas();
           setOpenDialog(false);
-          setSelectedQuota(null); // Clear selectedQuota after update
+          setSelectedQuota(null);
+          showSnackbar(
+            response.data.message || 'Quota updated successfully',
+            'success'
+          );
         })
         .catch(error => {
-          console.error('Error updating quota:', error);
+          showSnackbar(
+            error.response?.data?.message || 'Error updating quota',
+            'error'
+          );
         });
     } else {
       // Add new quota
       axios
         .post('http://localhost:5000/api/quotas', newQuota)
-        .then(() => {
+        .then(response => {
           fetchQuotas();
           setOpenDialog(false);
+          showSnackbar(
+            response.data.message || 'Quota added successfully',
+            'success'
+          );
         })
         .catch(error => {
-          console.error('Error adding quota:', error);
+          showSnackbar(
+            error.response?.data?.message || 'Error adding quota',
+            'error'
+          );
         });
     }
   };
 
-  // Handle editing a quota
   const handleEdit = quota => {
-    setSelectedQuota(quota); // Set the selected quota for editing
-    setOpenDialog(true); // Open the dialog with the selected quota
+    setSelectedQuota(quota);
+    setOpenDialog(true);
   };
 
-  // Handle deletion of a quota
   const handleDelete = () => {
     if (selectedQuota) {
       axios
         .delete(`http://localhost:5000/api/quotas/${selectedQuota.id}`)
-        .then(() => {
+        .then(response => {
           fetchQuotas();
           setOpenConfirmDialog(false);
           setSelectedQuota(null);
+          showSnackbar(
+            response.data.message || 'Quota deleted successfully',
+            'success'
+          );
         })
         .catch(error => {
-          console.error('Error deleting quota:', error);
+          setOpenConfirmDialog(false);
+          showSnackbar(
+            error.response?.data?.message || 'Error deleting quota',
+            'error'
+          );
         });
     }
   };
@@ -97,6 +123,14 @@ const QuotaTable = () => {
   const handleOpenConfirmDialog = quota => {
     setSelectedQuota(quota);
     setOpenConfirmDialog(true);
+  };
+
+  const showSnackbar = (message, severity) => {
+    setSnackbar({ open: true, message, severity });
+  };
+
+  const handleCloseSnackbar = () => {
+    setSnackbar({ ...snackbar, open: false });
   };
 
   return (
@@ -116,7 +150,7 @@ const QuotaTable = () => {
           variant="contained"
           color="primary"
           onClick={() => {
-            setSelectedQuota(null); // Clear selected quota before adding a new one
+            setSelectedQuota(null);
             setOpenDialog(true);
           }}
           startIcon={<Add />}
@@ -231,7 +265,7 @@ const QuotaTable = () => {
         open={openDialog}
         onClose={() => setOpenDialog(false)}
         onSubmit={handleFormSubmit}
-        quotaData={selectedQuota} // Pass the selected quota for editing
+        quotaData={selectedQuota}
       />
 
       {/* Confirmation Dialog */}
@@ -243,6 +277,14 @@ const QuotaTable = () => {
         onConfirm={handleDelete}
         confirmText="Delete"
         cancelText="Cancel"
+      />
+
+      {/* Snackbar Component */}
+      <SnackbarComponent
+        open={snackbar.open}
+        message={snackbar.message}
+        severity={snackbar.severity}
+        onClose={handleCloseSnackbar}
       />
     </Box>
   );

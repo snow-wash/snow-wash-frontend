@@ -20,24 +20,16 @@ const AddNewServiceDialog = ({
   const [serviceName, setServiceName] = useState('');
   const [quotaId, setQuotaId] = useState('');
 
-  // Reset the form fields when the dialog is closed
+  // Reset fields when dialog opens or closes
   useEffect(() => {
-    if (!open) {
+    if (open && serviceToEdit) {
+      setServiceName(serviceToEdit.name || '');
+      setQuotaId(serviceToEdit.quota_id?.toString() || '');
+    } else if (!open) {
       setServiceName('');
       setQuotaId('');
     }
-  }, [open]);
-
-  // Populate fields if editing
-  useEffect(() => {
-    if (serviceToEdit) {
-      setServiceName(serviceToEdit.name);
-      setQuotaId(serviceToEdit.quota_id.toString());
-    } else {
-      setServiceName('');
-      setQuotaId('');
-    }
-  }, [serviceToEdit]);
+  }, [open, serviceToEdit]);
 
   const handleClose = () => {
     setServiceName('');
@@ -51,19 +43,12 @@ const AddNewServiceDialog = ({
       name: serviceName,
       quota_id: parseInt(quotaId, 10),
     };
-
     onSubmit(serviceData, serviceToEdit?.id); // Pass service ID if editing
     handleClose();
   };
 
   return (
-    <Dialog
-      open={open}
-      onClose={handleClose}
-      fullWidth
-      maxWidth="sm"
-      key={serviceToEdit ? serviceToEdit.id : 'new'} // Use a key to reset state
-    >
+    <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
       <Box sx={{ p: 3 }}>
         <DialogTitle>
           {serviceToEdit ? 'Edit Service' : 'Add New Service'}
