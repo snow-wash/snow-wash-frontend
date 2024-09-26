@@ -9,6 +9,7 @@ import {
   Box,
   MenuItem,
   Typography,
+  Divider,
 } from '@mui/material';
 import apiService from '../services/apiService';
 import CustomCalendar from './CustomCalendar';
@@ -16,14 +17,16 @@ import CustomCalendar from './CustomCalendar';
 const AddServiceTransactionDialog = ({ open, onClose, onSubmit }) => {
   const [serviceCategory, setServiceCategory] = useState('');
   const [amount, setAmount] = useState('');
-  const [estimasiHarga, setEstimasiHarga] = useState('');
+  const [estimasiHarga, setEstimasiHarga] = useState(0);
   const [selectedDate, setSelectedDate] = useState('');
   const [serviceCategories, setServiceCategories] = useState([]);
   const [isConfirmed, setIsConfirmed] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(false);
+  const [amountError, setAmountError] = useState('');
 
   // Form validation state
-  const isFormValid = serviceCategory !== '' && amount !== '';
+  const isFormValid =
+    serviceCategory !== '' && amount !== '' && amountError === '';
 
   useEffect(() => {
     if (open) {
@@ -31,6 +34,12 @@ const AddServiceTransactionDialog = ({ open, onClose, onSubmit }) => {
       resetForm();
     }
   }, [open]);
+
+  useEffect(() => {
+    if (serviceCategory && amount !== '') {
+      validateAmount(amount);
+    }
+  }, [serviceCategory, amount]);
 
   const fetchServiceCategories = async () => {
     try {
@@ -46,20 +55,55 @@ const AddServiceTransactionDialog = ({ open, onClose, onSubmit }) => {
     setAmount('');
     setSelectedDate('');
     setIsConfirmed(false);
+    setEstimasiHarga(0);
+    setAmountError('');
+  };
+
+  const validateAmount = useCallback(
+    inputAmount => {
+      const selectedService = serviceCategories.find(
+        category => category.id === parseInt(serviceCategory, 10)
+      );
+
+      if (selectedService) {
+        if (inputAmount < selectedService.minimum_load) {
+          setAmountError(
+            `Input tidak boleh kurang dari ${selectedService.minimum_load}`
+          );
+          setEstimasiHarga(0);
+        } else if (
+          inputAmount >
+          selectedService.load_amount * selectedService.quota_limit
+        ) {
+          setAmountError(
+            `Input tidak boleh lebih dari ${
+              selectedService.load_amount * selectedService.quota_limit
+            }`
+          );
+          setEstimasiHarga(0);
+        } else {
+          setAmountError('');
+          const estimatedPrice =
+            Math.ceil(inputAmount / selectedService.load_amount) *
+            selectedService.price;
+          setEstimasiHarga(estimatedPrice);
+        }
+      }
+    },
+    [serviceCategory, serviceCategories]
+  );
+
+  const handleAmountChange = e => {
+    const inputAmount = parseInt(e.target.value, 10);
+    setAmount(inputAmount);
+    validateAmount(inputAmount);
   };
 
   const handleConfirm = useCallback(() => {
     if (isFormValid) {
-      console.log(serviceCategory)
-      // get service category by Id
-      const serviceCat = serviceCategories.filter(res => res.id === serviceCategory)
-
-      const amountCount = (Math.ceil(amount/serviceCat[0].load_amount)) * serviceCat[0].price;
-      setEstimasiHarga(amountCount)
-
       setIsConfirmed(true);
     }
-  }, [serviceCategory, isFormValid, serviceCategories, amount])
+  }, [isFormValid]);
 
   const handleEdit = () => {
     setIsConfirmed(false);
@@ -75,17 +119,19 @@ const AddServiceTransactionDialog = ({ open, onClose, onSubmit }) => {
   };
 
   const handleFormSubmit = useCallback(() => {
-    const serviceCat = serviceCategories.filter(res => res.id === serviceCategory)
+    const serviceCat = serviceCategories.find(
+      category => category.id === parseInt(serviceCategory, 10)
+    );
     const transactionData = {
       service_category_id: serviceCategory,
-      service_category_detail: serviceCat[0],
+      service_category_detail: serviceCat,
       amount: parseInt(amount, 10),
       estimasi_harga: estimasiHarga,
       date: selectedDate,
     };
     onSubmit(transactionData);
     handleClose();
-  }, [serviceCategory, amount, estimasiHarga, selectedDate, serviceCategories])
+  }, [serviceCategory, amount, estimasiHarga, selectedDate, serviceCategories]);
 
   const handleClose = () => {
     resetForm();
@@ -127,30 +173,26 @@ const AddServiceTransactionDialog = ({ open, onClose, onSubmit }) => {
               fullWidth
               type="number"
               value={amount}
-              onChange={e => setAmount(e.target.value)}
+              onChange={handleAmountChange}
               disabled={isConfirmed}
               required
+              error={amountError !== ''}
+              helperText={amountError}
             />
+            <Typography variant="body1" color="primary" sx={{ mt: 1 }}>
+              Estimasi Harga: Rp. {estimasiHarga.toLocaleString('id-ID')}
+            </Typography>
+            <Divider sx={{ my: 2 }} />
             {isConfirmed && (
-              <>
-                <TextField
-                  label="Estimasi Harga"
-                  variant="outlined"
-                  fullWidth
-                  type="number"
-                  value={estimasiHarga}
-                  disabled
-                />
-                <TextField
-                  label="Pilih Tanggal"
-                  variant="outlined"
-                  fullWidth
-                  value={selectedDate}
-                  onClick={() => setCalendarOpen(true)}
-                  InputLabelProps={{ shrink: true }}
-                  inputProps={{ readOnly: true }}
-                />
-              </>
+              <TextField
+                label="Pilih Tanggal"
+                variant="outlined"
+                fullWidth
+                value={selectedDate || 'Pilih tanggal'} // Hint text jika tanggal belum dipilih
+                onClick={() => setCalendarOpen(true)}
+                InputLabelProps={{ shrink: true }}
+                inputProps={{ readOnly: true }}
+              />
             )}
           </Box>
         </DialogContent>

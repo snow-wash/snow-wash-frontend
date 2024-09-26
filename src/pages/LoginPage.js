@@ -13,6 +13,7 @@ import {
 import { useNavigate } from 'react-router-dom'; // Import useNavigate hook
 import apiService from '../services/apiService'; // Import API service
 import SnackbarComponent from '../components/SnackbarComponent'; // Import the reusable Snackbar component
+import ForgotPasswordDialog from '../components/ForgotPasswordDialog'; // Import ForgotPasswordDialog component
 import { setRefreshToken, setToken } from '../services/authService';
 
 const savePasswordConfig = false;
@@ -26,6 +27,8 @@ const Login = () => {
     message: '',
     severity: '',
   });
+  const [forgotPasswordDialogOpen, setForgotPasswordDialogOpen] =
+    useState(false); // State to manage dialog open
 
   const navigate = useNavigate(); // Initialize the useNavigate hook
 
@@ -58,7 +61,7 @@ const Login = () => {
       // Handle success message
       setSnackbar({
         open: true,
-        message: 'Berhasil Login',
+        message: 'Login successful!',
         severity: 'success',
       });
 
@@ -75,18 +78,26 @@ const Login = () => {
       }
 
       // set token
-      setToken(response.data.token)
-      setRefreshToken(response.data.refresh_token)
+      setToken(response.data.token);
+      setRefreshToken(response.data.refresh_token);
       localStorage.setItem('userData', JSON.stringify(response.data));
-      
+
       console.log(response.data);
       // Redirect to dashboard after successful login
       navigate('/dashboard'); // Redirect to the dashboard
     } catch (error) {
       // Extract the error message from the response
-      const errorMessage = error.message || 'Gagal Login';
+      const errorMessage = error.message || 'Login failed';
       setSnackbar({ open: true, message: errorMessage, severity: 'error' });
     }
+  };
+
+  const handleForgotPasswordClick = () => {
+    setForgotPasswordDialogOpen(true); // Open the dialog when link is clicked
+  };
+
+  const handleForgotPasswordClose = () => {
+    setForgotPasswordDialogOpen(false); // Close the dialog
   };
 
   return (
@@ -178,7 +189,11 @@ const Login = () => {
                 }
                 label="Remember Login"
               />
-              <Link href="#" variant="body2">
+              <Link
+                href="#"
+                variant="body2"
+                onClick={handleForgotPasswordClick}
+              >
                 Forgot Password?
               </Link>
             </Box>
@@ -199,12 +214,6 @@ const Login = () => {
               Sign In
             </Button>
           </form>
-          <Typography variant="body2">
-            Don’t have an account?{' '}
-            <Link href="#" variant="body2" sx={{ fontWeight: 'bold' }}>
-              Create Account
-            </Link>
-          </Typography>
         </Box>
 
         {/* Reusable Snackbar for notifications */}
@@ -215,6 +224,12 @@ const Login = () => {
           onClose={() => setSnackbar({ ...snackbar, open: false })}
         />
       </Paper>
+
+      {/* Forgot Password Dialog */}
+      <ForgotPasswordDialog
+        open={forgotPasswordDialogOpen}
+        onClose={handleForgotPasswordClose}
+      />
     </Container>
   );
 };

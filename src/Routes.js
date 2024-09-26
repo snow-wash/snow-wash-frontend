@@ -9,6 +9,7 @@ import Service from './pages/ServicePage';
 import Quota from './pages/QuotaPage';
 import Transaction from './pages/TransactionPage';
 import AddTransactionPage from './pages/AddTransactionPage';
+import ResetPassword from './pages/ResetPassword';
 
 const PrivateRoute = ({ children }) => {
   const userData = localStorage.getItem('userData');
@@ -38,6 +39,8 @@ const AppRoutes = () => {
         <Route path="transaction" element={<Transaction />} />
         <Route path="transaction/add" element={<AddTransactionPage />} />
       </Route>
+
+      <Route path="/reset-password/:token" element={<ResetPassword />} />
 
       {/* Redirect unknown routes to HomePage */}
       <Route path="*" element={<Navigate to="/" />} />
